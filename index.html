@@ -1619,6 +1619,7 @@ function manageHTML(){
 }
 function openInternModal(idx){
   const isEdit = idx>=0;
+  weekTouched = false;   // 打开表单时重置"周数已手动修改"标记
   const i = isEdit ? state.interns[idx] : null;
   const roleOpts = isDev() ? ['后端开发','前端开发','质量工程','AI 应用开发'] : ['AI 产品','用户产品','数据产品'];
   openModal(`
@@ -1630,7 +1631,7 @@ function openInternModal(idx){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="field"><label>入职时间 <span class="req">*</span></label><input id="imJoinDate" type="date" value="${isEdit?(i.joinDate||''):'2026-09-07'}" onchange="autoCalcWeek()"></div>
-      <div class="field"><label>入职周数 <span class="req">*</span>（自动计算 · 可修改）</label><input id="imWeek" type="number" min="1" max="12" value="${isEdit?i.week:1}"></div>
+      <div class="field"><label>入职周数 <span class="req">*</span>（自动计算 · 手动修改后不再被覆盖）</label><input id="imWeek" type="number" min="1" max="12" value="${isEdit?i.week:1}" oninput="weekTouched=true"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="field"><label>培养阶段</label>
@@ -1651,8 +1652,11 @@ function openInternModal(idx){
       <button class="btn-primary sm" onclick="saveIntern(${idx})">${isEdit?'保存修改':'添加'}</button>
     </div>`);
 }
-/* 入职时间 → 自动计算入职周数（可手动修改）：入职当周为第 1 周 */
+/* 入职时间 → 自动计算入职周数（可手动修改）：入职当周为第 1 周
+   手动修改过周数（weekTouched）后，入职时间变化不再覆盖手动值 */
+let weekTouched = false;
 function autoCalcWeek(){
+  if(weekTouched) return;   // 用户已手动改过周数，尊重手动值
   const v = document.getElementById('imJoinDate');
   const w = document.getElementById('imWeek');
   if(!v || !w || !v.value) return;
