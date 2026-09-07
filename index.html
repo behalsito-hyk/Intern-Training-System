@@ -726,8 +726,8 @@ const MODELS = {
         {
           id:'lin', name:'林知远', role:'后端开发', week:5, phase:1,
           goal:'从复现到修复，独立讲清一个业务缺陷',
-          task:{ title:'会话状态流转缺陷修复与回归', status:'review' },
-          progress:{ text:'讲清会话状态流转链路', star:true },
+          task:{ title:'会话状态流转缺陷修复与回归', status:'review', week:5 },
+          week:5,           progress:{ text:'讲清会话状态流转链路', star:true },
           support:null, meeting:'09.08', tl:'王一帆',
           skills:{ code:3, debug:3, quality:2, doc:3, comm:3 },
           timeline:[
@@ -751,8 +751,8 @@ const MODELS = {
         {
           id:'chen', name:'陈雨桐', role:'质量工程', week:3, phase:0,
           goal:'学会设计边界用例，让问题可以稳定复现',
-          task:{ title:'接口边界场景复现与测试设计', status:'doing' },
-          progress:{ text:'', star:false },
+          task:{ title:'接口边界场景复现与测试设计', status:'doing', week:3 },
+          week:3,           progress:{ text:'', star:false },
           support:{ text:'缺少异常状态测试数据，需要 TL 协调获取', status:'pending' },
           meeting:'09.07', tl:'李雅',
           skills:{ code:2, debug:2, quality:2, doc:2, comm:2 },
@@ -774,8 +774,8 @@ const MODELS = {
         {
           id:'zhou', name:'周亦航', role:'AI 应用开发', week:9, phase:2,
           goal:'独立完成工具试用，用证据验证改进效果',
-          task:{ title:'排障摘要工具试用与效果复盘', status:'doing' },
-          progress:{ text:'交付排障摘要辅助工具', star:true },
+          task:{ title:'排障摘要工具试用与效果复盘', status:'doing', week:9 },
+          week:9,           progress:{ text:'交付排障摘要辅助工具', star:true },
           support:null, meeting:'09.09', tl:'张弛',
           skills:{ code:4, debug:4, quality:3, doc:3, comm:4 },
           timeline:[
@@ -833,8 +833,8 @@ const MODELS = {
         {
           id:'su', name:'苏晓禾', role:'AI 产品', week:5, phase:1,
           goal:'完成一次真实用户访谈，输出可验证的需求洞察',
-          task:{ title:'AI 客服降级场景用户访谈与洞察整理', status:'review' },
-          progress:{ text:'梳理出 3 类高频求助场景', star:true },
+          task:{ title:'AI 客服降级场景用户访谈与洞察整理', status:'review', week:5 },
+          week:5,           progress:{ text:'梳理出 3 类高频求助场景', star:true },
           support:null, meeting:'09.08', tl:'赵清和',
           skills:{ insight:3, design:2, data:2, doc:3, collab:3 },
           quant:{ doc:2, clarify:2, cmp:0, ops:0, ai:0, flow:0, skill:false },
@@ -859,8 +859,8 @@ const MODELS = {
         {
           id:'gu', name:'顾之夏', role:'AI 产品', week:3, phase:0,
           goal:'独立讲清产品功能架构与核心用户路径',
-          task:{ title:'AI 对话产品功能地图梳理', status:'doing' },
-          progress:{ text:'', star:false },
+          task:{ title:'AI 对话产品功能地图梳理', status:'doing', week:3 },
+          week:3,           progress:{ text:'', star:false },
           support:{ text:'缺少历史迭代文档，需要 TL 协调获取', status:'pending' },
           meeting:'09.07', tl:'赵清和',
           skills:{ insight:2, design:1, data:1, doc:2, collab:2 },
@@ -883,8 +883,8 @@ const MODELS = {
         {
           id:'xu', name:'许诺', role:'AI 产品', week:9, phase:2,
           goal:'独立完成改版方案，用 2 周灰度数据验证效果',
-          task:{ title:'智能体编排页改版方案与效果复盘', status:'doing' },
-          progress:{ text:'交付「会话摘要优化」方案并被采纳', star:true },
+          task:{ title:'智能体编排页改版方案与效果复盘', status:'doing', week:9 },
+          week:9,           progress:{ text:'交付「会话摘要优化」方案并被采纳', star:true },
           support:null, meeting:'09.09', tl:'陈默',
           skills:{ insight:4, design:4, data:3, doc:4, collab:3 },
           quant:{ doc:4, clarify:4, cmp:1, ops:1, ai:1, flow:0, skill:true },
@@ -937,7 +937,7 @@ function migrateIntern(i, job){
     ...i,
     skills: { ...defSkillsFor(job), ...(i.skills||{}) },
     quant: { ...QUANT_DEF, ...(i.quant||{}) },
-    task: i.task || { title:'待分配 · 本周成长任务', status:'doing' },
+    task: { ...(i.task || { title:'待分配 · 本周成长任务', status:'doing' }), week: (i.task && i.task.week) || 1 },
     progress: i.progress || { text:'', star:false },
     timeline: i.timeline || [],
     m1: i.m1 || [],
@@ -1193,6 +1193,7 @@ function cardHTML(i,idx){
     <div class="goal"><div class="gl">${icon.target}本周成长目标</div><p>${i.goal}</p></div>
     <div class="task-row">
       <div class="tt">${i.task.title}</div>
+      ${(i.task.week && i.task.week>i.week)?`<span class="tag review" style="flex-shrink:0">第 ${i.task.week} 周</span>`:''}
       <span class="${t[1]}">${t[0]}</span>
       ${i.task.status==='review'?`<button class="mini-btn" onclick="reviewTask('${i.id}')">去验收</button>`:''}
     </div>
@@ -1275,7 +1276,7 @@ function taskListHTML(){
         <div class="ti-ava">${t.ava}</div>
         <div class="ti-main">
           <div class="ti-title">${t.title}</div>
-          <div class="ti-meta"><b>${isIntern?'我':t.intern}</b><span>${state.interns.find(i=>i.id===t.id).tl} 带教</span><span>本周培养周期</span></div>
+          <div class="ti-meta"><b>${isIntern?'我':t.intern}</b><span>${state.interns.find(i=>i.id===t.id).tl} 带教</span><span>${(()=>{ const cur=state.interns.find(i=>i.id===t.id).week; return t.week===cur?`本周 · 第 ${t.week} 周`:t.week>cur?`未来 · 第 ${t.week} 周`:`第 ${t.week} 周`; })()}</span></div>
         </div>
         <span class="${TAG[t.status][1]}">${TAG[t.status][0]}</span>
         ${t.status==='review'&&isIntern?`<button class="mini-btn" onclick="toast('验收由带教导师完成')">等导师验收</button>`:''}
@@ -1578,8 +1579,8 @@ function defaultIntern(name, roleName){
   return {
     id:'new'+Date.now(), name, role:roleName, week:wk, phase:0,
     goal:'熟悉团队与业务，明确本周成长目标',
-    task:{ title:'待分配 · 本周成长任务', status:'doing' },
-    progress:{ text:'', star:false },
+    task:{ title:'待分配 · 本周成长任务', status:'doing', week:1 },
+    week:1,     progress:{ text:'', star:false },
     support:null, meeting:'下周待定', tl:'待分配',
     skills: isDev()?{code:1,debug:1,quality:1,doc:1,comm:1}:{insight:1,design:1,data:1,doc:1,collab:1},
     quant:{ doc:0, clarify:0, cmp:0, ops:0, ai:0, flow:0, skill:false },
@@ -2235,26 +2236,47 @@ function resolveSupport(id){
 function openNewTask(){
   openModal(`
     <h3>新建成长任务</h3>
-    <div class="msub">任务应可验收、可观察，并服务于本周成长目标</div>
+    <div class="msub">任务应可验收、可观察，并服务于该周的成长目标；先选伙伴，再选任务所属周次</div>
     <div class="field"><label>任务标题 <span class="req">*</span></label><input id="ntTitle" placeholder="例如：${isDev()?'会话状态流转缺陷修复与回归':'AI 客服降级场景用户访谈与洞察整理'}"></div>
-    <div class="field"><label>指派伙伴 <span class="req">*</span></label>
-      <select id="ntWho">${state.interns.map(i=>`<option value="${i.id}">${i.name} · ${roleLabel(i.role)}（第${i.week}周）</option>`).join('')}</select>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>指派伙伴 <span class="req">*</span></label>
+        <select id="ntWho" onchange="refreshTaskWeeks()">${state.interns.map(i=>`<option value="${i.id}">${i.name} · ${roleLabel(i.role)}（第${i.week}周）</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>任务周次 <span class="req">*</span>（当前周起）</label>
+        <select id="ntWeek"></select>
+      </div>
     </div>
     <div class="field"><label>任务说明</label><textarea id="ntDesc" placeholder="说明验收标准、期望产出…"></textarea></div>
     <div class="modal-ft">
       <button class="btn-ghost" onclick="closeModal()">取消</button>
       <button class="btn-primary sm" onclick="createTask()">创建任务</button>
     </div>`);
+  refreshTaskWeeks();
   setTimeout(()=>$('#ntTitle').focus(),80);
+}
+/* 先选人 → 刷新该伙伴可选周次（当前周 ~ 第 12 周） */
+function refreshTaskWeeks(){
+  const who = $('#ntWho');
+  const sel = $('#ntWeek');
+  if(!who || !sel) return;
+  const i = state.interns.find(x=>x.id===who.value);
+  if(!i) return;
+  const cur = Math.max(1, i.week);
+  const opts = [];
+  for(let w=cur; w<=12; w++){
+    opts.push(`<option value="${w}" ${w===cur?'selected':''}>${w===cur?`第 ${w} 周（当前周）`:`第 ${w} 周`}</option>`);
+  }
+  sel.innerHTML = opts.join('');
 }
 function createTask(){
   const title=$('#ntTitle').value.trim();
   if(!title){ toast('请填写任务标题'); return; }
   const who=$('#ntWho').value;
+  const week=parseInt($('#ntWeek').value)||1;
   const i=state.interns.find(x=>x.id===who);
-  i.task={ title, status:'doing' };
+  i.task={ title, status:'doing', week };
   closeModal(); render();
-  toast(`成长任务已创建：${title}`);
+  toast(`成长任务已创建（第 ${week} 周）：${title}`);
 }
 
 /* ================= 岗位模式切换 ================= */
