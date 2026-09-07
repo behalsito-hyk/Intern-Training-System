@@ -1,0 +1,2343 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>青禾 · 数智化服务平台 — 培养总览</title>
+<style>
+/* ============ 设计令牌 ============ */
+:root{
+  --bg:#F3F6F4;
+  --surface:#FFFFFF;
+  --surface-2:#F8FAF8;
+  --ink:#1C2B23;
+  --ink-2:#5B6D62;
+  --ink-3:#96A49B;
+  --line:#E4EBE6;
+  --brand:#1F8A5B;
+  --brand-deep:#14603F;
+  --brand-soft:#E5F3EB;
+  --brand-softer:#F0F8F3;
+  --amber:#B45309;
+  --amber-bg:#FDF3E0;
+  --amber-line:#F3DFB8;
+  --blue:#2E6FBF;
+  --blue-bg:#EAF2FC;
+  --orange:#C65F1E;
+  --orange-bg:#FCF0E7;
+  --green:#1F8A5B;
+  --green-bg:#E5F3EB;
+  --shadow-s:0 1px 2px rgba(28,43,35,.04),0 2px 8px rgba(28,43,35,.05);
+  --shadow-m:0 4px 16px rgba(28,43,35,.08),0 2px 6px rgba(28,43,35,.05);
+  --shadow-l:0 16px 48px rgba(28,43,35,.16);
+  --r-sm:10px;--r-md:14px;--r-lg:18px;
+  --font-sans:"MiSans","HarmonyOS Sans SC","PingFang SC","Source Han Sans SC","Microsoft YaHei",system-ui,sans-serif;
+  --font-num:Georgia,"Times New Roman","Songti SC",serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  font-family:var(--font-sans);
+  background:var(--bg);
+  color:var(--ink);
+  font-size:14px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow:hidden;
+}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+input,select,textarea{font-family:inherit}
+/* ============ 布局骨架 ============ */
+.app{display:flex;height:100vh}
+.sidebar{
+  width:236px;flex-shrink:0;
+  background:var(--surface);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
+  padding:20px 14px 16px;
+}
+.brand{display:flex;align-items:center;gap:10px;padding:2px 10px 18px}
+.brand-mark{
+  width:34px;height:34px;border-radius:10px;
+  background:linear-gradient(135deg,#2BAE73,#14603F);
+  color:#fff;font-weight:700;font-size:15px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 10px rgba(31,138,91,.3);
+}
+.brand-name{font-size:17px;font-weight:700;letter-spacing:.5px}
+.brand-slogan{font-size:9.5px;color:var(--ink-3);letter-spacing:2.6px;margin-top:1px}
+.nav-label{font-size:11px;color:var(--ink-3);padding:6px 12px 8px;letter-spacing:1px}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:var(--r-sm);
+  color:var(--ink-2);font-size:13.5px;font-weight:500;
+  transition:background .18s,color .18s;position:relative;
+}
+.nav-item svg{width:17px;height:17px;flex-shrink:0;opacity:.75}
+.nav-item:hover{background:var(--surface-2);color:var(--ink)}
+.nav-item.active{background:var(--brand-soft);color:var(--brand-deep);font-weight:600}
+.nav-item.active svg{opacity:1;color:var(--brand)}
+.badge{
+  margin-left:auto;min-width:18px;height:18px;padding:0 5px;
+  border-radius:9px;background:var(--amber-bg);color:var(--amber);
+  font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.sidebar-foot{margin-top:auto;padding:12px 10px 0;border-top:1px solid var(--line)}
+.foot-quote{font-size:12px;color:var(--ink-2);font-style:italic;padding-bottom:10px}
+.foot-quote b{color:var(--brand-deep);font-weight:700}
+.foot-meta{font-size:11px;color:var(--ink-3);padding-bottom:10px;line-height:1.5}
+.reset-btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:7px;
+  padding:8px;border-radius:var(--r-sm);border:1px dashed var(--line);
+  color:var(--ink-2);font-size:12px;transition:all .18s;
+}
+.reset-btn:hover{border-color:var(--brand);color:var(--brand-deep);background:var(--brand-softer)}
+.reset-btn svg{width:13px;height:13px}
+.backup-row{display:flex;gap:8px;margin-bottom:8px}
+.backup-row .reset-btn{flex:1;padding:7px 4px;font-size:11px;white-space:nowrap}
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  height:56px;flex-shrink:0;
+  background:rgba(255,255,255,.82);backdrop-filter:blur(8px);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;padding:0 28px;gap:14px;
+  position:relative;z-index:60;
+}
+.crumb{font-size:12.5px;color:var(--ink-3)}
+.crumb b{color:var(--ink-2);font-weight:500}
+.crumb .sep{margin:0 8px;color:var(--line)}
+.crumb .cur{color:var(--brand-deep);font-weight:600}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+.demo-tag{
+  font-size:10.5px;letter-spacing:1px;padding:3px 9px;border-radius:999px;
+  background:var(--brand-soft);color:var(--brand-deep);font-weight:600;border:1px solid #CDE8D9;
+}
+/* 岗位模式切换 */
+.seg{display:flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.seg-btn{
+  padding:5px 14px;border-radius:999px;font-size:12px;color:var(--ink-2);
+  font-weight:500;transition:all .2s;white-space:nowrap;
+}
+.seg-btn:hover{color:var(--ink)}
+.seg-btn.active{background:var(--brand);color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(31,138,91,.3)}
+.seg-divider{width:1px;height:18px;background:var(--line);align-self:center}
+.view-switch{position:relative}
+.vs-btn{
+  display:flex;align-items:center;gap:8px;
+  padding:6px 12px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);font-size:12.5px;color:var(--ink);transition:all .18s;
+}
+.vs-btn:hover{border-color:var(--brand)}
+.vs-btn .dot{width:7px;height:7px;border-radius:50%;background:var(--brand)}
+.vs-btn svg{width:12px;height:12px;color:var(--ink-3)}
+.vs-menu{
+  position:absolute;right:0;top:calc(100% + 6px);min-width:180px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--shadow-m);padding:6px;display:none;z-index:50;
+}
+.vs-menu.open{display:block;animation:popIn .16s ease}
+.vs-opt{
+  width:100%;text-align:left;padding:8px 10px;border-radius:8px;font-size:12.5px;color:var(--ink-2);
+}
+.vs-opt:hover{background:var(--brand-softer);color:var(--ink)}
+.vs-opt .sub{font-size:11px;color:var(--ink-3);display:block}
+.avatar{
+  width:32px;height:32px;border-radius:50%;
+  background:linear-gradient(135deg,#2BAE73,#14603F);color:#fff;
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.content{flex:1;overflow-y:auto;padding:30px 34px 90px;scroll-behavior:smooth}
+.view{display:none;animation:fadeUp .35s ease both}
+.view.active{display:block}
+/* ============ 培养总览 ============ */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;margin-bottom:22px}
+.hero-eyebrow{
+  font-size:10.5px;letter-spacing:3px;color:var(--brand);
+  font-weight:700;margin-bottom:8px;
+}
+.hero h1{font-size:30px;font-weight:750;letter-spacing:.5px;line-height:1.25}
+.hero .sub{font-size:13.5px;color:var(--ink-2);margin-top:6px}
+.hero-actions{display:flex;gap:10px;align-items:center;flex-shrink:0}
+.btn-primary{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--brand);color:#fff;font-size:13px;font-weight:600;
+  padding:10px 18px;border-radius:999px;box-shadow:0 6px 16px rgba(31,138,91,.28);
+  transition:all .2s;
+}
+.btn-primary:hover{background:var(--brand-deep);transform:translateY(-1px)}
+.btn-primary svg{width:14px;height:14px}
+.weekbar{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-s);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;margin-bottom:26px;
+}
+.weekbar .lbl{font-size:13px;color:var(--ink-2)}
+.weekbar .lbl b{color:var(--ink);font-weight:600}
+.weekbar .range{font-size:12px;color:var(--ink-3);margin-top:1px}
+.stats{display:flex;gap:10px}
+.stat{
+  display:flex;align-items:baseline;gap:6px;
+  padding:7px 14px;border-radius:999px;background:var(--surface-2);
+  border:1px solid var(--line);cursor:pointer;transition:all .18s;
+}
+.stat:hover{border-color:var(--brand);background:var(--brand-softer)}
+.stat.on{border-color:var(--brand);background:var(--brand-soft)}
+.stat .n{font-family:var(--font-num);font-size:19px;font-weight:700;color:var(--ink)}
+.stat .t{font-size:12px;color:var(--ink-2)}
+.stat.amber .n{color:var(--amber)}
+.stat.blue .n{color:var(--blue)}
+.sect-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+.sect-head h2{font-size:19px;font-weight:700}
+.sect-head .h2sub{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+.sect-head .note{font-size:12px;color:var(--ink-3);display:flex;align-items:center;gap:5px}
+.sect-head .note svg{width:13px;height:13px}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-s);padding:22px;display:flex;flex-direction:column;gap:14px;
+  transition:transform .22s,box-shadow .22s;position:relative;overflow:hidden;
+}
+.card:hover{transform:translateY(-3px);box-shadow:var(--shadow-m)}
+.card::before{
+  content:"";position:absolute;inset:0 0 auto 0;height:3px;
+  background:linear-gradient(90deg,var(--brand),#7FD3AC);opacity:0;transition:opacity .22s;
+}
+.card:hover::before{opacity:1}
+.card-top{display:flex;align-items:center;gap:12px}
+.p-avatar{
+  width:44px;height:44px;border-radius:14px;flex-shrink:0;
+  background:linear-gradient(135deg,#E5F3EB,#CDE8D9);color:var(--brand-deep);
+  font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.card-top .who{min-width:0}
+.who .nm{font-size:15.5px;font-weight:700}
+.who .role{font-size:12px;color:var(--ink-3);margin-top:1px}
+.phase-pill{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  padding:4px 10px;border-radius:999px;background:var(--brand-softer);
+  font-size:11.5px;color:var(--brand-deep);font-weight:600;white-space:nowrap;
+}
+.phase-pill .pdot{width:6px;height:6px;border-radius:50%;background:var(--brand)}
+.phasebar{display:flex;gap:5px;margin-top:9px}
+.phasebar i{
+  flex:1;height:4px;border-radius:2px;background:var(--line);overflow:hidden;position:relative;
+}
+.phasebar i.on{background:var(--brand)}
+.phasebar i.half::after{
+  content:"";position:absolute;left:0;top:0;bottom:0;width:55%;background:var(--brand);border-radius:2px;
+}
+.phase-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);margin-top:5px}
+.phase-meta b{color:var(--ink-2);font-weight:600}
+.goal{background:var(--surface-2);border-radius:var(--r-sm);padding:11px 13px}
+.goal .gl{font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:5px;margin-bottom:4px}
+.goal .gl svg{width:12px;height:12px}
+.goal p{font-size:13px;font-weight:600;color:var(--ink);line-height:1.5}
+.task-row{
+  display:flex;align-items:center;gap:9px;padding:10px 13px;
+  border:1px solid var(--line);border-radius:var(--r-sm);background:var(--surface);
+}
+.task-row .tt{flex:1;min-width:0;font-size:12.5px;color:var(--ink);font-weight:500;line-height:1.45}
+.tag{flex-shrink:0;font-size:11px;font-weight:600;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.tag.doing{background:var(--blue-bg);color:var(--blue)}
+.tag.review{background:var(--orange-bg);color:var(--orange)}
+.tag.done{background:var(--green-bg);color:var(--green)}
+.mini-btn{
+  flex-shrink:0;font-size:11.5px;font-weight:600;padding:5px 11px;border-radius:999px;
+  border:1px solid var(--brand);color:var(--brand-deep);transition:all .18s;
+}
+.mini-btn:hover{background:var(--brand);color:#fff}
+.progress-line{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-3)}
+.progress-line svg{width:12px;height:12px;color:var(--brand)}
+.progress-line b{color:var(--brand-deep);font-weight:600}
+.support-block{
+  background:var(--amber-bg);border:1px solid var(--amber-line);border-radius:var(--r-sm);
+  padding:10px 13px;display:flex;align-items:center;gap:10px;
+}
+.support-block .q{
+  width:20px;height:20px;border-radius:50%;background:var(--amber);color:#fff;flex-shrink:0;
+  font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;
+}
+.support-block .st{flex:1;font-size:12px;color:#7A4E0E;line-height:1.45}
+.support-block.resolved{background:var(--green-bg);border-color:#CDE8D9}
+.support-block.resolved .q{background:var(--green)}
+.support-block.resolved .st{color:var(--brand-deep)}
+.card-foot{
+  margin-top:auto;display:flex;align-items:center;justify-content:space-between;
+  padding-top:12px;border-top:1px dashed var(--line);
+}
+.meeting{font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:6px}
+.meeting svg{width:13px;height:13px;color:var(--brand)}
+.meeting b{color:var(--ink);font-weight:600}
+.archive-link{
+  display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;
+  color:var(--brand-deep);transition:gap .18s;
+}
+.archive-link:hover{gap:8px}
+.archive-link svg{width:12px;height:12px}
+.filter-hint{font-size:12px;color:var(--ink-3);padding:6px 2px 0}
+.filter-hint a{color:var(--brand-deep);cursor:pointer;text-decoration:underline}
+/* ============ 成长任务视图 ============ */
+.tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap}
+.tab{
+  padding:7px 16px;border-radius:999px;font-size:12.5px;color:var(--ink-2);
+  background:var(--surface);border:1px solid var(--line);transition:all .18s;font-weight:500;
+}
+.tab:hover{border-color:var(--brand)}
+.tab.active{background:var(--brand);color:#fff;border-color:var(--brand);font-weight:600}
+.task-list{display:flex;flex-direction:column;gap:12px}
+.task-item{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  box-shadow:var(--shadow-s);padding:16px 18px;display:flex;align-items:center;gap:16px;
+  transition:box-shadow .18s;
+}
+.task-item:hover{box-shadow:var(--shadow-m)}
+.task-item .ti-ava{
+  width:38px;height:38px;border-radius:12px;flex-shrink:0;
+  background:linear-gradient(135deg,#E5F3EB,#CDE8D9);color:var(--brand-deep);
+  font-weight:700;display:flex;align-items:center;justify-content:center;font-size:14px;
+}
+.task-item .ti-main{flex:1;min-width:0}
+.task-item .ti-title{font-size:13.5px;font-weight:600}
+.task-item .ti-meta{font-size:11.5px;color:var(--ink-3);margin-top:2px;display:flex;gap:10px}
+.task-item .ti-meta b{color:var(--ink-2);font-weight:600}
+/* ============ 个人成长视图 ============ */
+.profile-wrap{display:grid;grid-template-columns:230px 1fr;gap:22px;align-items:start}
+.pick-list{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:10px;box-shadow:var(--shadow-s)}
+.pick-item{
+  width:100%;display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--r-sm);
+  transition:background .15s;text-align:left;
+}
+.pick-item:hover{background:var(--surface-2)}
+.pick-item.active{background:var(--brand-soft)}
+.pick-item .p-avatar{width:36px;height:36px;border-radius:11px;font-size:14px}
+.pick-item .pi{min-width:0}
+.pick-item .pi b{display:block;font-size:13px}
+.pick-item .pi span{font-size:11px;color:var(--ink-3)}
+.pick-item .ph{margin-left:auto;font-size:11px;color:var(--brand-deep);font-weight:700}
+.panel{display:flex;flex-direction:column;gap:18px}
+.panel-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-s);padding:20px 22px;
+}
+.panel-card h3{font-size:14.5px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.panel-card h3 svg{width:15px;height:15px;color:var(--brand)}
+.pf-head{display:flex;align-items:center;gap:16px;padding:6px 2px}
+.pf-head .p-avatar{width:56px;height:56px;border-radius:18px;font-size:22px}
+.pf-head .nm{font-size:20px;font-weight:750}
+.pf-head .meta{font-size:12.5px;color:var(--ink-2);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.pf-head .meta span{display:inline-flex;align-items:center;gap:4px}
+.pf-head .meta svg{width:12px;height:12px}
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--line);border-radius:1px}
+.tl-item{position:relative;padding:0 0 16px 6px}
+.tl-item::before{
+  content:"";position:absolute;left:-21px;top:5px;width:12px;height:12px;border-radius:50%;
+  background:var(--surface);border:3px solid var(--brand);
+}
+.tl-item.past::before{border-color:var(--brand-soft)}
+.tl-item .tw{font-size:11px;color:var(--brand-deep);font-weight:700;letter-spacing:.5px}
+.tl-item .tt{font-size:13px;font-weight:600;margin-top:1px}
+.tl-item .td{font-size:12px;color:var(--ink-2);margin-top:2px;line-height:1.5}
+.tl-item .tcur{display:inline-block;font-size:10.5px;background:var(--brand);color:#fff;padding:1px 8px;border-radius:999px;margin-left:6px;vertical-align:1px}
+.m1on1{display:flex;gap:12px;padding:11px 0;border-bottom:1px dashed var(--line)}
+.m1on1:last-child{border-bottom:none;padding-bottom:0}
+.m1on1 .d{font-family:var(--font-num);font-size:15px;font-weight:700;color:var(--brand-deep);width:52px;flex-shrink:0}
+.m1on1 .c{font-size:12.5px;color:var(--ink-2);line-height:1.55}
+.m1on1 .c b{color:var(--ink);font-weight:600}
+.skill-row{display:flex;align-items:center;gap:12px;padding:7px 0}
+.skill-row .sn{width:72px;font-size:12px;color:var(--ink-2);font-weight:600;flex-shrink:0}
+.skill-row .bar{flex:1;height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.skill-row .bar i{
+  display:block;height:100%;border-radius:4px;
+  background:linear-gradient(90deg,#2BAE73,var(--brand-deep));
+  transition:width .8s cubic-bezier(.2,.8,.2,1);
+}
+.skill-row .sv{width:26px;text-align:right;font-family:var(--font-num);font-size:13px;font-weight:700;color:var(--brand-deep)}
+.skill-legend{font-size:11px;color:var(--ink-3);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap}
+/* ============ 沟通与支持 ============ */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:22px;align-items:start}
+.plain-list{display:flex;flex-direction:column;gap:10px}
+.plain-row{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);
+  padding:13px 16px;display:flex;align-items:center;gap:12px;box-shadow:var(--shadow-s);
+}
+.plain-row .ic{
+  width:32px;height:32px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;background:var(--brand-softer);color:var(--brand-deep);
+}
+.plain-row .ic svg{width:15px;height:15px}
+.plain-row .pm{flex:1;min-width:0}
+.plain-row .pm b{font-size:13px;font-weight:600}
+.plain-row .pm span{font-size:11.5px;color:var(--ink-3);display:block}
+/* ============ 阶段回顾 ============ */
+.stage-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.stage-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:18px;box-shadow:var(--shadow-s);position:relative;
+}
+.stage-card .sn{font-family:var(--font-num);font-size:26px;font-weight:700;color:var(--line)}
+.stage-card.done{border-color:#CDE8D9;background:var(--brand-softer)}
+.stage-card.done .sn{color:var(--brand)}
+.stage-card.cur{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-soft)}
+.stage-card .sn2{position:absolute;top:14px;right:14px;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:999px}
+.stage-card.done .sn2{background:var(--green-bg);color:var(--green)}
+.stage-card.cur .sn2{background:var(--brand);color:#fff}
+.stage-card h4{font-size:14px;font-weight:700;margin:8px 0 5px}
+.stage-card .desc{font-size:12px;color:var(--ink-2);line-height:1.55}
+.stage-card .skills{margin-top:8px;display:flex;gap:5px;flex-wrap:wrap}
+.stage-card .skills span{font-size:10.5px;padding:2px 8px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--ink-2)}
+.rule-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px}
+.rule-card{
+  background:var(--brand-softer);border:1px solid #CDE8D9;border-radius:var(--r-md);
+  padding:14px 16px;display:flex;gap:12px;align-items:flex-start;
+}
+.rule-card .rn{font-family:var(--font-num);font-size:20px;font-weight:700;color:var(--brand);line-height:1}
+.rule-card .rt b{font-size:12.5px;color:var(--brand-deep);display:block;margin-bottom:3px}
+.rule-card .rt span{font-size:11.5px;color:var(--ink-2);line-height:1.5;display:block}
+/* ============ 组织看板（HR 视角） ============ */
+.org-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.org-card{
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);
+  padding:18px 20px;box-shadow:var(--shadow-s);
+}
+.org-card .n{font-family:var(--font-num);font-size:30px;font-weight:700;color:var(--brand-deep);line-height:1.1}
+.org-card .t{font-size:12px;color:var(--ink-2);margin-top:3px}
+.org-card .d{font-size:11px;color:var(--ink-3);margin-top:1px}
+.org-card.warn .n{color:var(--amber)}
+.org-card.blue .n{color:var(--blue)}
+.org-rows{display:flex;flex-direction:column;gap:9px}
+.org-row{
+  display:flex;align-items:center;gap:12px;background:var(--surface);
+  border:1px solid var(--line);border-radius:var(--r-md);padding:12px 16px;box-shadow:var(--shadow-s);
+}
+.org-row .ot{flex:1;min-width:0}
+.org-row .ot b{font-size:13px;font-weight:600}
+.org-row .ot span{font-size:11.5px;color:var(--ink-3);display:block;margin-top:1px}
+.org-row .ot .ot-desc{font-size:11px;color:var(--ink-2);line-height:1.5;margin-top:3px;display:block}
+.org-row .ot .job{
+  display:inline-block;font-size:10.5px;padding:1px 8px;border-radius:999px;margin-left:6px;
+  background:var(--brand-softer);color:var(--brand-deep);vertical-align:1px;font-weight:600;
+}
+.org-row .ot .job.dev{background:var(--blue-bg);color:var(--blue)}
+.org-row .cnt{font-size:11.5px;color:var(--ink-2);white-space:nowrap}
+.org-row .cnt b{font-family:var(--font-num);font-size:15px;font-weight:700;color:var(--ink)}
+.org-row .cnt.amber b{color:var(--amber)}
+.org-row .cnt.blue b{color:var(--blue)}
+.dist-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:8px 0 10px}
+.dist-bar i{display:block;height:100%}
+.dist-bar i.dev{background:var(--blue)}
+.dist-bar i.product{background:var(--brand)}
+.dist-legend{display:flex;gap:16px;font-size:11px;color:var(--ink-3)}
+.dist-legend .li{display:flex;align-items:center;gap:5px}
+.dist-legend .li i{width:9px;height:9px;border-radius:2px;display:inline-block}
+/* ============ 转正准备 ============ */
+.steps{display:flex;gap:0;margin:8px 0 22px}
+.step{flex:1;position:relative;text-align:center;padding:0 8px}
+.step .dot{
+  width:34px;height:34px;border-radius:50%;margin:0 auto 8px;
+  background:var(--surface);border:2px solid var(--line);color:var(--ink-3);
+  font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;position:relative;z-index:2;
+}
+.step.done .dot{background:var(--brand);border-color:var(--brand);color:#fff}
+.step.cur .dot{border-color:var(--brand);color:var(--brand-deep);box-shadow:0 0 0 4px var(--brand-soft)}
+.step::before{
+  content:"";position:absolute;top:17px;left:calc(-50% + 17px);right:calc(50% + 17px);height:2px;background:var(--line);
+}
+.step:first-child::before{display:none}
+.step.done::before,.step.done ~ .step::before{background:var(--brand)}
+.step b{display:block;font-size:12px;color:var(--ink-2);font-weight:600}
+.step span{font-size:10.5px;color:var(--ink-3)}
+.ready-panel{
+  background:linear-gradient(135deg,#F0F8F3,#E5F3EB);border:1px solid #CDE8D9;
+  border-radius:var(--r-lg);padding:22px 24px;display:flex;align-items:center;gap:16px;
+}
+.ready-panel .rk{font-size:30px}
+.ready-panel h3{font-size:16px;font-weight:700;color:var(--brand-deep)}
+.ready-panel p{font-size:12.5px;color:var(--ink-2);margin-top:4px;line-height:1.6}
+.dim-row{
+  display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px dashed var(--line);
+}
+.dim-row:last-child{border-bottom:none;padding-bottom:0}
+.dim-row .dn{width:110px;flex-shrink:0}
+.dim-row .dn b{font-size:13px;color:var(--ink)}
+.dim-row .dn span{font-size:10.5px;color:var(--ink-3);display:block;margin-top:1px}
+.dim-row .dw{width:46px;flex-shrink:0;font-family:var(--font-num);font-size:15px;font-weight:700;color:var(--brand-deep)}
+.dim-row .dd{flex:1;font-size:12px;color:var(--ink-2);line-height:1.5}
+/* ============ 转正考核 V2：三维度必要条件 ============ */
+.ver-switch{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:3px;gap:2px}
+.ver-btn{padding:5px 14px;border-radius:999px;font-size:12px;color:var(--ink-2);font-weight:500;transition:all .2s;white-space:nowrap}
+.ver-btn:hover{color:var(--ink)}
+.ver-btn.active{background:var(--brand);color:#fff;font-weight:600;box-shadow:0 2px 6px rgba(31,138,91,.3)}
+.dim3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
+.dim3-card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px;box-shadow:var(--shadow-s);position:relative}
+.dim3-card .dno{font-family:var(--font-num);font-size:26px;font-weight:700;color:var(--line);position:absolute;top:14px;right:16px}
+.dim3-card .dic{width:34px;height:34px;border-radius:10px;background:var(--brand-softer);color:var(--brand-deep);display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+.dim3-card .dic svg{width:16px;height:16px}
+.dim3-card h4{font-size:14px;font-weight:700;margin-bottom:4px}
+.dim3-card .desc{font-size:12px;color:var(--ink-2);line-height:1.6}
+.dim3-card .req{margin-top:10px;font-size:11px;font-weight:600;color:var(--brand-deep);background:var(--brand-softer);display:inline-block;padding:2px 9px;border-radius:999px}
+.check-list{display:flex;flex-direction:column;gap:10px}
+.check-item{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 16px;box-shadow:var(--shadow-s)}
+.check-item .cb{width:22px;height:22px;border-radius:7px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.check-item .cb.no{background:var(--surface-2);border:1.5px solid var(--line);color:transparent}
+.check-item .cb.yes{background:var(--brand);color:#fff}
+.check-item .cb.part{background:var(--amber-bg);border:1.5px solid var(--amber-line);color:var(--amber)}
+.check-item .ct{flex:1;min-width:0}
+.check-item .ct b{font-size:13px;font-weight:600}
+.check-item .ct span{font-size:11.5px;color:var(--ink-3);display:block;margin-top:1px}
+.check-item .cp{font-size:11.5px;color:var(--ink-2);white-space:nowrap}
+.check-item .cp b{font-family:var(--font-num);font-size:15px;font-weight:700}
+.check-item .cp b.full{color:var(--brand)}
+.check-item .cp b.warn{color:var(--amber)}
+.check-item .cp em{font-style:normal;color:var(--ink-3);margin:0 2px}
+.bonus{margin-top:14px;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,#FDF8EC,#FDF3E0);border:1px solid var(--amber-line);border-radius:var(--r-md);padding:13px 16px}
+.bonus .bic{width:30px;height:30px;border-radius:9px;background:var(--amber);color:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.bonus .bt{font-size:12.5px;color:#7A4E0E;flex:1;line-height:1.55}
+.bonus .bt b{color:var(--amber)}
+.bonus .tag.done{flex-shrink:0}
+.pt-pick{display:flex;align-items:center;gap:10px}
+.pt-pick .pl{font-size:12px;color:var(--ink-2);font-weight:600}
+.pt-pick select{
+  padding:6px 12px;border:1px solid var(--line);border-radius:999px;font-size:12.5px;
+  color:var(--ink);background:var(--surface);outline:none;cursor:pointer;
+}
+.pt-pick select:focus{border-color:var(--brand)}
+/* ============ 实习生管理 ============ */
+.mini-btn.danger{border-color:#E0B4A8;color:#B3543F}
+.mini-btn.danger:hover{background:#B3543F;border-color:#B3543F;color:#fff}
+.mg-list{display:flex;flex-direction:column}
+.mg-row{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:13px 18px;box-shadow:var(--shadow-s);margin-bottom:10px}
+.mg-row .p-avatar{width:38px;height:38px;border-radius:12px;font-size:14px}
+.mg-info{flex:1;min-width:0}
+.mg-info b{font-size:13.5px}
+.mg-info .mi{font-size:11.5px;color:var(--ink-3);margin-top:1px;display:flex;gap:10px;flex-wrap:wrap}
+.mg-goal{flex:0 0 250px;font-size:11.5px;color:var(--ink-2);line-height:1.5}
+.mg-goal span{display:block;font-size:10.5px;color:var(--ink-3);margin-bottom:1px}
+.mg-ops{display:flex;gap:8px;flex-shrink:0}
+.mg-empty{padding:50px 20px;text-align:center;color:var(--ink-3);border:1px dashed var(--line);border-radius:var(--r-lg);font-size:12.5px}
+/* 阶段拖拽排序 */
+.phase-drag{cursor:grab;user-select:none;transition:border-color .15s,box-shadow .15s,opacity .15s}
+.phase-drag:active{cursor:grabbing}
+.phase-drag.drag-on{opacity:.4;border-style:dashed;border-color:var(--brand)}
+.phase-drag.drag-over{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-soft)}
+.drag-handle{color:var(--ink-3);font-size:14px;cursor:grab;flex-shrink:0;padding:0 2px;letter-spacing:-2px}
+.sort-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:24px;border-radius:7px;background:var(--brand-softer);color:var(--brand-deep);font-family:var(--font-num);font-weight:700;font-size:12px;margin-right:8px;vertical-align:-1px}
+.sort-hint{font-size:11px;color:var(--ink-3);display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.sort-hint svg{width:12px;height:12px;color:var(--brand);flex-shrink:0}
+/* ============ 悬浮按钮 ============ */
+.fab{
+  position:fixed;right:30px;bottom:30px;width:56px;height:56px;border-radius:50%;
+  background:linear-gradient(135deg,#2BAE73,#14603F);color:#fff;
+  box-shadow:0 10px 28px rgba(31,138,91,.4);
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;
+  transition:transform .2s,box-shadow .2s;z-index:40;
+}
+.fab:hover{transform:translateY(-3px) rotate(-6deg);box-shadow:0 14px 34px rgba(31,138,91,.5)}
+.fab svg{width:20px;height:20px;margin-right:1px}
+.fab .star{position:absolute;top:6px;right:7px;font-size:11px}
+/* ============ Modal ============ */
+.modal-mask{
+  position:fixed;inset:0;background:rgba(20,35,28,.42);backdrop-filter:blur(3px);
+  display:none;align-items:center;justify-content:center;z-index:100;padding:20px;
+}
+.modal-mask.open{display:flex;animation:fadeIn .2s ease}
+.modal{
+  background:var(--surface);border-radius:20px;width:520px;max-width:100%;
+  box-shadow:var(--shadow-l);padding:26px 28px;animation:popIn .24s cubic-bezier(.2,.9,.3,1.2);
+}
+.modal h3{font-size:17px;font-weight:750;margin-bottom:4px}
+.modal .msub{font-size:12px;color:var(--ink-3);margin-bottom:20px}
+.field{margin-bottom:16px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-bottom:6px}
+.field label .req{color:var(--orange)}
+.field input,.field select,.field textarea{
+  width:100%;padding:10px 13px;border:1px solid var(--line);border-radius:var(--r-sm);
+  font-size:13px;color:var(--ink);outline:none;transition:border .18s,box-shadow .18s;background:var(--surface);
+}
+.field textarea{resize:vertical;min-height:72px}
+.field input:focus,.field select:focus,.field textarea:focus{
+  border-color:var(--brand);box-shadow:0 0 0 3px rgba(31,138,91,.14);
+}
+.rate-row{display:flex;align-items:center;gap:12px;padding:8px 0}
+.rate-row .rl{width:96px;font-size:12.5px;color:var(--ink-2);font-weight:600;flex-shrink:0}
+.rate-row .rs{display:flex;gap:6px}
+.rate-row .rs button{
+  width:34px;height:30px;border-radius:8px;border:1px solid var(--line);
+  font-size:12px;color:var(--ink-3);transition:all .15s;
+}
+.rate-row .rs button:hover{border-color:var(--brand);color:var(--brand)}
+.rate-row .rs button.sel{background:var(--brand);border-color:var(--brand);color:#fff}
+.modal-ft{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+.btn-ghost{padding:9px 18px;border-radius:999px;border:1px solid var(--line);font-size:13px;color:var(--ink-2);transition:all .18s}
+.btn-ghost:hover{border-color:var(--ink-3)}
+.btn-primary.sm{padding:9px 20px;font-size:13px}
+/* ============ Toast ============ */
+#toasts{position:fixed;top:20px;right:24px;z-index:200;display:flex;flex-direction:column;gap:10px}
+.toast{
+  background:var(--ink);color:#fff;padding:11px 18px;border-radius:12px;font-size:13px;
+  box-shadow:var(--shadow-l);display:flex;align-items:center;gap:9px;animation:slideIn .3s ease;
+}
+.toast .tk{width:18px;height:18px;border-radius:50%;background:var(--brand);color:#fff;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast.out{animation:slideOut .3s ease forwards}
+.placeholder{
+  background:var(--surface);border:1px dashed var(--line);border-radius:var(--r-lg);
+  padding:60px 30px;text-align:center;color:var(--ink-3);
+}
+.placeholder .pi{font-size:34px;margin-bottom:12px}
+.placeholder b{display:block;font-size:15px;color:var(--ink-2);margin-bottom:6px}
+.placeholder span{font-size:12.5px}
+/* ============ 动画 ============ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:none}}
+@keyframes slideIn{from{opacity:0;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes slideOut{from{opacity:1;transform:none}to{opacity:0;transform:translateX(40px)}}
+.stagger{opacity:0;animation:fadeUp .45s ease forwards}
+.stagger:nth-child(1){animation-delay:.05s}
+.stagger:nth-child(2){animation-delay:.12s}
+.stagger:nth-child(3){animation-delay:.19s}
+.stagger:nth-child(4){animation-delay:.26s}
+.stagger:nth-child(5){animation-delay:.33s}
+@media(max-width:1180px){.grid{grid-template-columns:repeat(2,1fr)}.stage-grid{grid-template-columns:repeat(2,1fr)}.duo{grid-template-columns:1fr}.rule-grid{grid-template-columns:1fr}}
+@media(max-width:860px){
+  .sidebar{display:none}
+  .grid{grid-template-columns:1fr}
+  .profile-wrap{grid-template-columns:1fr}
+  .content{padding:20px 18px 80px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- ============ 侧栏 ============ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">青</div>
+      <div>
+        <div class="brand-name">青禾</div>
+        <div class="brand-slogan">GROW TOGETHER</div>
+      </div>
+    </div>
+    <div class="nav-label">成长工作台</div>
+    <nav class="nav" id="nav"></nav>
+    <div class="sidebar-foot">
+      <div class="foot-quote" id="footQuote">三个人，<b>各自向前一步</b>。</div>
+      <div class="foot-meta" id="footMeta">数智化服务平台 · 双岗位培养<br>v0.5 · DEMO 原型</div>
+      <div class="backup-row">
+        <button class="reset-btn" onclick="exportData()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          导出数据备份
+        </button>
+        <button class="reset-btn" onclick="document.getElementById('importFile').click()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          导入备份
+        </button>
+        <input type="file" id="importFile" accept=".json,application/json" style="display:none" onchange="importData(this.files[0])">
+      </div>
+      <button class="reset-btn" id="resetBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+        重置示例数据
+      </button>
+    </div>
+  </aside>
+
+  <!-- ============ 主区域 ============ -->
+  <div class="main">
+    <header class="topbar">
+      <div class="crumb" id="crumb">数智化服务平台 <span class="sep">/</span> <b>成长工作台</b> <span class="sep">/</span> <span class="cur">培养总览</span></div>
+      <div class="topbar-right">
+        <span class="demo-tag">DEMO · 示例数据</span>
+        <!-- 岗位模式切换 -->
+        <div class="seg" id="seg">
+          <button class="seg-btn" data-role="dev">开发实习生</button>
+          <button class="seg-btn active" data-role="product">产品实习生</button>
+        </div>
+        <div class="seg-divider"></div>
+        <div class="view-switch" id="vs">
+          <button class="vs-btn" id="vsBtn"><span class="dot"></span><span id="vsLabel">带教导师 · TL 视角</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="vs-menu" id="vsMenu">
+            <button class="vs-opt" data-view="tl"><span class="vo-main">产品导师 · 产品视角</span><span class="sub">管理名下产品实习生培养</span></button>
+            <button class="vs-opt" data-view="intern">实习生视角<span class="sub">查看个人成长轨迹</span></button>
+            <button class="vs-opt" data-view="hr">组织管理 · HR 视角<span class="sub">跨岗位组织看板</span></button>
+          </div>
+        </div>
+        <div class="avatar">TL</div>
+      </div>
+    </header>
+
+    <main class="content" id="content">
+      <!-- 各视图由 JS 渲染 -->
+    </main>
+  </div>
+</div>
+
+<!-- 悬浮按钮 -->
+<button class="fab" id="fab" title="新建成长任务">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+</button>
+
+<!-- Modal 容器 -->
+<div class="modal-mask" id="modalMask">
+  <div class="modal" id="modalBox"></div>
+</div>
+
+<div id="toasts"></div>
+
+<script>
+/* =====================================================================
+   双岗位培养模型：开发实习生 / 产品实习生
+   每个岗位独立配置：阶段定义、能力维度、晋升规则、转正评估、示例数据
+   ===================================================================== */
+const MODELS = {
+  /* ---------- 开发实习生 ---------- */
+  dev: {
+    label:'开发实习生',
+    phases:[
+      { name:'熟悉融入', range:'第 1-2 周',  desc:'了解业务、代码库与协作规范，建立安全提问的习惯', skills:['代码库认知','协作规范'], sort:1 },
+      { name:'跟随式交付', range:'第 3-6 周',  desc:'在指导下完成真实任务，学会复现问题与结构化复盘', skills:['问题复现','代码实现'], sort:2 },
+      { name:'独立承担', range:'第 7-10 周', desc:'独立负责模块级任务，用证据验证改进效果', skills:['根因分析','测试覆盖','交付质量'], sort:3 },
+      { name:'转正准备', range:'第 11-12 周',desc:'沉淀成果与成长证据，完成转正材料', skills:['综合复盘'], sort:4 },
+    ],
+    skillDims:[
+      { key:'code',    name:'工程实现', desc:'编码质量、环境搭建与工具链' },
+      { key:'debug',   name:'问题定位', desc:'复现、根因分析与修复闭环' },
+      { key:'quality', name:'交付质量', desc:'测试覆盖、回归与边界用例' },
+      { key:'doc',     name:'技术文档', desc:'结构化输出与方案表达' },
+      { key:'comm',    name:'协作沟通', desc:'跨职能沟通与评审表达' },
+    ],
+    promoteRules:[
+      { n:'01', t:'任务验收达标', s:'本阶段成长任务验收 ≥ 2 个，且无未闭环事项' },
+      { n:'02', t:'阶段自评 + 导师确认', s:'实习生完成阶段自评，导师 1:1 确认成长证据' },
+      { n:'03', t:'关键能力达标', s:'本阶段核心能力项导师评分 ≥ 3/5（5 分制）' },
+    ],
+    evalDims:[
+      { name:'工程实现', w:'30%', desc:'编码质量、交付完成度，代码评审一次通过率' },
+      { name:'问题定位', w:'25%', desc:'能独立复现问题、定位根因并闭环修复' },
+      { name:'交付质量', w:'20%', desc:'测试覆盖合理，回归充分，无线上事故' },
+      { name:'技术沟通', w:'15%', desc:'文档清晰，评审表达有条理' },
+      { name:'学习成长', w:'10%', desc:'技术成长速度与独立性提升' },
+    ],
+    seed(){
+      return { interns:[
+        {
+          id:'lin', name:'林知远', role:'后端开发', week:5, phase:1,
+          goal:'从复现到修复，独立讲清一个业务缺陷',
+          task:{ title:'会话状态流转缺陷修复与回归', status:'review' },
+          progress:{ text:'讲清会话状态流转链路', star:true },
+          support:null, meeting:'09.08', tl:'王一帆',
+          skills:{ code:3, debug:3, quality:2, doc:3, comm:3 },
+          timeline:[
+            { w:'W1', t:'接入开发环境', d:'完成 onboarding checklist，跑通本地调试链路' },
+            { w:'W2', t:'通读会话服务模块', d:'输出模块结构说明与数据流笔记' },
+            { w:'W3', t:'修复登录态丢失问题', d:'第一次独立定位并修复真实缺陷' },
+            { w:'W4', t:'复现会话状态问题', d:'稳定复现，定位根因在状态流转分支' },
+            { w:'W5', t:'修复并回归，讲清链路', d:'当前周 · 从复现到修复，独立讲清业务缺陷', cur:true },
+          ],
+          m1:[
+            { d:'09.01', c:'主题：会话状态链路理解。结论：核心链路已理解，下一步独立复现问题。' },
+            { d:'09.08', c:'计划：验收缺陷修复，讨论回归策略与边界用例。' },
+          ],
+          progressLog:[
+            { t:'讲清会话状态流转链路', d:'能把问题从现象到根因完整讲清楚', star:true },
+            { t:'稳定复现缺陷', d:'通过构造会话时序稳定触发问题' },
+          ],
+          join:'08.05',
+          joinDate:'2026-08-05', gradDate:'2027-06-30', school:'华中科技大学', degree:'本科', 
+        },
+        {
+          id:'chen', name:'陈雨桐', role:'质量工程', week:3, phase:0,
+          goal:'学会设计边界用例，让问题可以稳定复现',
+          task:{ title:'接口边界场景复现与测试设计', status:'doing' },
+          progress:{ text:'', star:false },
+          support:{ text:'缺少异常状态测试数据，需要 TL 协调获取', status:'pending' },
+          meeting:'09.07', tl:'李雅',
+          skills:{ code:2, debug:2, quality:2, doc:2, comm:2 },
+          timeline:[
+            { w:'W1', t:'熟悉质量基线', d:'了解接口测试规范与用例模板' },
+            { w:'W2', t:'编写基础接口用例', d:'完成 3 个核心接口的正常场景用例' },
+            { w:'W3', t:'设计边界用例', d:'当前周 · 学习异常/边界场景设计方法', cur:true },
+          ],
+          m1:[
+            { d:'08.31', c:'主题：用例设计思路。结论：先正常场景，再逐步覆盖异常分支。' },
+            { d:'09.07', c:'计划：对齐边界用例设计，协调异常测试数据。' },
+          ],
+          progressLog:[
+            { t:'完成核心接口用例', d:'3 个核心接口正常场景用例已入库', star:false },
+          ],
+          join:'08.19',
+          joinDate:'2026-08-19', gradDate:'2027-06-30', school:'武汉大学', degree:'研究生', 
+        },
+        {
+          id:'zhou', name:'周亦航', role:'AI 应用开发', week:9, phase:2,
+          goal:'独立完成工具试用，用证据验证改进效果',
+          task:{ title:'排障摘要工具试用与效果复盘', status:'doing' },
+          progress:{ text:'交付排障摘要辅助工具', star:true },
+          support:null, meeting:'09.09', tl:'张弛',
+          skills:{ code:4, debug:4, quality:3, doc:3, comm:4 },
+          timeline:[
+            { w:'W1', t:'熟悉 AI 工具链', d:'了解内部 Agent 平台与模型接入方式' },
+            { w:'W2', t:'完成 prompt 基线梳理', d:'整理排障场景的 prompt 模板 v1' },
+            { w:'W4', t:'跑通工具原型', d:'结合日志检索实现第一版排障摘要' },
+            { w:'W6', t:'交付排障摘要工具', d:'工具在团队内试用，纳入日常排障流程' },
+            { w:'W9', t:'试用与效果复盘', d:'当前周 · 收集试用数据，用证据验证改进效果', cur:true },
+          ],
+          m1:[
+            { d:'09.02', c:'主题：工具试用方案。结论：确定对比指标：平均排障时长、摘要采纳率。' },
+            { d:'09.09', c:'计划：复盘试用数据，输出效果评估。' },
+          ],
+          progressLog:[
+            { t:'交付排障摘要辅助工具', d:'工具已接入团队排障流程试用', star:true },
+            { t:'建立效果指标体系', d:'排障时长、采纳率两个核心指标' },
+          ],
+          join:'07.08',
+          joinDate:'2026-07-08', gradDate:'2025-06-30', school:'清华大学', degree:'研究生', 
+        },
+      ]};
+    }
+  },
+
+  /* ---------- 产品实习生 ---------- */
+  product: {
+    label:'产品实习生',
+    phases:[
+      { name:'跟学理解', range:'第 1-3 周',  desc:'理解产品、用户与需求流转流程，建立结构化提问与表达习惯', skills:['产品认知','结构化表达'], sort:1 },
+      { name:'需求分析', range:'第 4-7 周',  desc:'独立完成用户调研与需求洞察，输出高质量需求文档', skills:['需求洞察','文档表达'], sort:2 },
+      { name:'独立设计与验证', range:'第 8-11 周', desc:'独立负责模块设计，用数据与用户反馈验证效果', skills:['方案设计','数据意识','协作推进'], sort:3 },
+      { name:'转正准备', range:'第 12 周',   desc:'沉淀成果与能力证据，完成转正评估', skills:['综合复盘'], sort:4 },
+    ],
+    skillDims:[
+      { key:'insight', name:'需求洞察', desc:'用户调研、痛点与机会识别' },
+      { key:'design',  name:'方案设计', desc:'原型、PRD、评审与迭代' },
+      { key:'data',    name:'数据意识', desc:'指标定义、实验设计与数据复盘' },
+      { key:'doc',     name:'文档表达', desc:'结构化写作与汇报' },
+      { key:'collab',  name:'协作推进', desc:'跨职能沟通与节奏管理' },
+    ],
+    promoteRules:[
+      { n:'01', t:'任务验收达标', s:'本阶段成长任务验收 ≥ 2 个，且无未闭环事项' },
+      { n:'02', t:'阶段自评 + 导师确认', s:'实习生完成阶段自评，导师 1:1 确认成长证据' },
+      { n:'03', t:'关键能力达标', s:'本阶段核心能力项导师评分 ≥ 3/5（5 分制）' },
+    ],
+    evalDims:[
+      { name:'需求洞察', w:'25%', desc:'能独立发现并验证用户问题，洞察有据可依' },
+      { name:'方案设计', w:'25%', desc:'PRD / 原型质量，评审一次通过率' },
+      { name:'数据意识', w:'20%', desc:'指标定义合理，能用量化结果证明改进' },
+      { name:'文档表达', w:'15%', desc:'结构化输出，汇报清晰有重点' },
+      { name:'协作推进', w:'15%', desc:'跨职能沟通顺畅，主动推进不阻塞' },
+    ],
+    seed(){
+      return { interns:[
+        {
+          id:'su', name:'苏晓禾', role:'AI 产品', week:5, phase:1,
+          goal:'完成一次真实用户访谈，输出可验证的需求洞察',
+          task:{ title:'AI 客服降级场景用户访谈与洞察整理', status:'review' },
+          progress:{ text:'梳理出 3 类高频求助场景', star:true },
+          support:null, meeting:'09.08', tl:'赵清和',
+          skills:{ insight:3, design:2, data:2, doc:3, collab:3 },
+          quant:{ doc:2, clarify:2, cmp:0, ops:0, ai:0, flow:0, skill:false },
+          timeline:[
+            { w:'W1', t:'理解产品与用户', d:'体验 AI 客服产品，记录核心用户路径与产品边界' },
+            { w:'W2', t:'梳理功能架构', d:'输出 AI 客服产品功能地图 v1，通过导师评审' },
+            { w:'W3', t:'跟读用户反馈', d:'整理 12 条客服工单，归纳高频问题方向' },
+            { w:'W4', t:'设计访谈提纲', d:'确定「降级场景」3 类假设，输出访谈提纲 v1' },
+            { w:'W5', t:'执行访谈与洞察', d:'当前周 · 完成 5 场用户访谈，整理需求洞察', cur:true },
+          ],
+          m1:[
+            { d:'09.01', c:'主题：访谈提纲评审。结论：先验证 3 类场景假设，再决定洞察优先级。' },
+            { d:'09.08', c:'计划：验收访谈洞察整理，讨论下一步需求池优先级排序。' },
+          ],
+          progressLog:[
+            { t:'梳理出 3 类高频求助场景', d:'基于 12 条工单归纳：误配置、知识库缺失、转人工失败', star:true },
+            { t:'输出访谈提纲 v1', d:'含 3 类场景假设与验证问题，导师评审通过' },
+          ],
+          join:'08.05',
+          joinDate:'2026-08-05', gradDate:'2027-06-30', school:'中山大学', degree:'本科', 
+        },
+        {
+          id:'gu', name:'顾之夏', role:'AI 产品', week:3, phase:0,
+          goal:'独立讲清产品功能架构与核心用户路径',
+          task:{ title:'AI 对话产品功能地图梳理', status:'doing' },
+          progress:{ text:'', star:false },
+          support:{ text:'缺少历史迭代文档，需要 TL 协调获取', status:'pending' },
+          meeting:'09.07', tl:'赵清和',
+          skills:{ insight:2, design:1, data:1, doc:2, collab:2 },
+          quant:{ doc:1, clarify:1, cmp:0, ops:0, ai:0, flow:0, skill:false },
+          timeline:[
+            { w:'W1', t:'体验产品', d:'完成新手引导，记录 6 个体验问题' },
+            { w:'W2', t:'熟悉需求流转', d:'旁听 2 场需求评审会，理解 PRD→评审→排期流程' },
+            { w:'W3', t:'梳理功能地图', d:'当前周 · 按模块梳理 AI 对话产品功能地图', cur:true },
+          ],
+          m1:[
+            { d:'08.31', c:'主题：产品认知入门。结论：先地图后细节，用一张图讲清产品。' },
+            { d:'09.07', c:'计划：对齐功能地图初稿，协调历史迭代文档。' },
+          ],
+          progressLog:[
+            { t:'完成产品体验报告', d:'记录 6 个体验问题，标注优先级', star:false },
+          ],
+          join:'08.19',
+          joinDate:'2026-08-19', gradDate:'2027-06-30', school:'北京邮电大学', degree:'本科', 
+        },
+        {
+          id:'xu', name:'许诺', role:'AI 产品', week:9, phase:2,
+          goal:'独立完成改版方案，用 2 周灰度数据验证效果',
+          task:{ title:'智能体编排页改版方案与效果复盘', status:'doing' },
+          progress:{ text:'交付「会话摘要优化」方案并被采纳', star:true },
+          support:null, meeting:'09.09', tl:'陈默',
+          skills:{ insight:4, design:4, data:3, doc:4, collab:3 },
+          quant:{ doc:4, clarify:4, cmp:1, ops:1, ai:1, flow:0, skill:true },
+          timeline:[
+            { w:'W1-2', t:'熟悉 Agent 编排产品', d:'理解智能体编排流程与对话流配置逻辑' },
+            { w:'W3-4', t:'用户访谈与竞品调研', d:'访谈 5 位深度用户，输出竞品差异对比表' },
+            { w:'W5-6', t:'独立设计 v1 方案', d:'完成改版 PRD + 交互原型，评审一次通过' },
+            { w:'W7-8', t:'跟进开发与灰度', d:'方案上线灰度，回收用户反馈 23 条' },
+            { w:'W9', t:'数据复盘', d:'当前周 · 基于灰度数据验证改版效果', cur:true },
+          ],
+          m1:[
+            { d:'09.02', c:'主题：灰度数据口径对齐。结论：核心指标定为任务完成率、误配置率。' },
+            { d:'09.09', c:'计划：复盘灰度数据，评估改版收益并决定全量节奏。' },
+          ],
+          progressLog:[
+            { t:'交付「会话摘要优化」方案', d:'方案被采纳并进入开发，灰度中', star:true },
+            { t:'建立灰度指标体系', d:'任务完成率、误配置率两个核心指标' },
+          ],
+          join:'07.08',
+          joinDate:'2026-07-08', gradDate:'2025-06-30', school:'浙江大学', degree:'研究生', 
+        },
+      ]};
+    }
+  }
+};
+
+/* ================= 当前状态 ================= */
+let roleType = 'product';   // dev | product —— 当前岗位模式
+let state = MODELS[roleType].seed();
+let curView = 'overview';
+let curFilter = 'all';
+let taskTab = 'all';
+let internViewIdx = 0;
+let roleView = 'tl';
+let checkVer = 'v2';   // 转正考核版本：v1 维度权重 / v2 三维度必要条件（默认最新）
+
+/* ================= 数据持久化（升级不丢数据） =================
+   存储结构带版本号；升级时按版本迁移、缺字段补默认，用户数据始终保留。
+   每个岗位（dev/product）的数据独立保存，切换岗位互不覆盖。 */
+const STORE_KEY = 'qinghe_state';
+const SCHEMA_VERSION = 2;
+const QUANT_DEF = { doc:0, clarify:0, cmp:0, ops:0, ai:0, flow:0, skill:false };
+function defSkillsFor(job){
+  return job==='dev'
+    ? { code:1, debug:1, quality:1, doc:1, comm:1 }
+    : { insight:1, design:1, data:1, doc:1, collab:1 };
+}
+function migrateIntern(i, job){
+  return {
+    ...i,
+    skills: { ...defSkillsFor(job), ...(i.skills||{}) },
+    quant: { ...QUANT_DEF, ...(i.quant||{}) },
+    task: i.task || { title:'待分配 · 本周成长任务', status:'doing' },
+    progress: i.progress || { text:'', star:false },
+    timeline: i.timeline || [],
+    m1: i.m1 || [],
+    progressLog: i.progressLog || [],
+    joinDate: i.joinDate || '',
+    gradDate: i.gradDate || '',
+    school: i.school || '',
+    degree: i.degree || '本科',
+  };
+}
+function loadState(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return null;
+    const d = JSON.parse(raw);
+    const jobs = { dev:null, product:null };
+    (d.jobs||{}).dev && (jobs.dev = { interns:(d.jobs.dev.interns||[]).map(i=>migrateIntern(i,'dev')), custom:d.jobs.dev.custom||null });
+    (d.jobs||{}).product && (jobs.product = { interns:(d.jobs.product.interns||[]).map(i=>migrateIntern(i,'product')), custom:d.jobs.product.custom||null });
+    return {
+      v: d.v||1,
+      roleType: (d.roleType==='dev'||d.roleType==='product') ? d.roleType : 'product',
+      roleView: ['tl','intern','hr'].includes(d.roleView) ? d.roleView : 'tl',
+      curView: d.curView || 'overview',
+      checkVer: (d.checkVer==='v1'||d.checkVer==='v2') ? d.checkVer : 'v2',
+      jobs,
+    };
+  }catch(e){ return null; }
+}
+function saveState(){
+  try{
+    const data = {
+      v: SCHEMA_VERSION,
+      roleType, roleView, curView, checkVer,
+      jobs: { dev:null, product:null },
+    };
+    // 当前岗位写当前 state；另一岗位保留历史数据（无历史则保持 null，切换时回落默认模型）
+    data.jobs[roleType] = { interns: state.interns, custom: customByJob[roleType] };
+    const prev = loadState();
+    if(prev && prev.jobs){
+      const other = roleType==='dev' ? 'product' : 'dev';
+      if(prev.jobs[other]) data.jobs[other] = prev.jobs[other];
+    }
+    localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  }catch(e){}
+}
+function switchJob(t){
+  if(t===roleType) return;
+  saveState();                       // 保存当前岗位数据
+  const prev = loadState();
+  const slot = prev && prev.jobs[t] ? prev.jobs[t] : null;
+  roleType = t;
+  if(slot){
+    state.interns = slot.interns;
+    customByJob[t] = slot.custom;
+  } else {
+    state = MODELS[t].seed();
+    customByJob[t] = null;
+  }
+  curFilter='all'; taskTab='all'; internViewIdx=0;
+  curView = roleView==='intern' ? 'profile' : 'overview';
+  document.querySelectorAll('#seg .seg-btn').forEach(x=>x.classList.toggle('active', x.dataset.role===roleType));
+  render();
+  toast(`已切换为${MODELS[roleType].label}培养模式`);
+}
+
+/* ================= 模型配置（可配置化） =================
+   customByJob：按岗位保存 HR 自定义的模型配置（阶段/晋升参数）
+   未配置时回落到 MODELS 默认模型；重置示例数据时一并清除 */
+let customByJob = { dev:null, product:null };
+const _sorted = arr => arr.slice().sort((a,b)=>(a.sort??0)-(b.sort??0));
+const getPhases = () => {
+  const arr = (customByJob[roleType] && customByJob[roleType].phases) || MODELS[roleType].phases;
+  return _sorted(arr);
+};
+const perJobPhases = job => {
+  const arr = (customByJob[job] && customByJob[job].phases) || MODELS[job].phases;
+  return _sorted(arr);
+};
+function getRules(){
+  const base = M().promoteRules;
+  const c = customByJob[roleType] && customByJob[roleType].params;
+  if(!c) return base;
+  return [
+    { ...base[0], s:`本阶段成长任务验收 ≥ ${c.taskMin} 个，且无未闭环事项` },
+    base[1],
+    { ...base[2], s:`本阶段核心能力项导师评分 ≥ ${c.scoreMin}/5（5 分制）` },
+  ];
+}
+function ensureCfg(){
+  if(!customByJob[roleType]){
+    customByJob[roleType] = {
+      phases: MODELS[roleType].phases.map(p=>({...p, skills:[...p.skills]})),
+      params: { taskMin:2, scoreMin:3 },
+      footer: null,
+      skillDims: MODELS[roleType].skillDims.map(d=>({...d})),
+    };
+  }
+  return customByJob[roleType];
+}
+/* 能力维度（可配置）：名称/描述可增删改，影响个人成长能力图与阶段自评 */
+const getSkillDims = () => {
+  const c = customByJob[roleType] && customByJob[roleType].skillDims;
+  return (c && c.length) ? c : M().skillDims;
+};
+/* 左下角描述（可配置）：品牌标语 / 平台描述 / 版本号 */
+function getFooter(){
+  const c = customByJob[roleType] && customByJob[roleType].footer;
+  return c || { quote:'三个人，各自向前一步', meta:'数智化服务平台 · 双岗位培养', ver:'v0.5 · DEMO 原型' };
+}
+function renderFooter(){
+  const f = getFooter();
+  const q = f.quote || '三个人，各自向前一步';
+  $('#footQuote').innerHTML = q.indexOf('向前一步')>=0 ? q.replace('向前一步','<b>向前一步</b>') : q;
+  $('#footMeta').innerHTML = `${f.meta}<br>${f.ver}`;
+}
+function clampPhase(){
+  const len = getPhases().length;
+  state.interns.forEach(i=>{ if(i.phase>=len) i.phase=Math.max(0,len-1); });
+}
+
+/* ================= 工具 ================= */
+const $ = s => document.querySelector(s);
+const icon = {
+  overview:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>',
+  growth:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M12 21c-4 0-7-1.5-7-4 0-2.5 3-4 7-4s7 1.5 7 4c0 2.5-3 4-7 4z"/><path d="M5 9c0 3 3 4.5 7 4.5S19 12 19 9"/></svg>',
+  tasks:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/></svg>',
+  chat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg>',
+  review:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v12H8l-4 4z"/><path d="M8.5 9h7M8.5 12.5h4"/></svg>',
+  prepare:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 4v5c0 4.5-3 8-7 9-4-1-7-4.5-7-9V7z"/><path d="m9 12 2 2 4-4"/></svg>',
+  star:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5l2.9 5.9 6.5.95-4.7 4.6 1.1 6.5L12 17.4l-5.8 3.05 1.1-6.5-4.7-4.6 6.5-.95z"/></svg>',
+  target:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/><circle cx="12" cy="12" r=".6" fill="currentColor"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>',
+  arrow:'<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  flag:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4"/><path d="M5 4c6-3 8 3 14 0v9c-6 3-8-3-14 0"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7.5-4.6-10-9.5C.5 8 2.5 4.5 6 4.5c2.2 0 3.8 1.2 6 3.5 2.2-2.3 3.8-3.5 6-3.5 3.5 0 5.5 3.5 4 7-2.5 4.9-10 9.5-10 9.5z"/></svg>',
+  settings:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.09a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.09a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1z"/></svg>',
+};
+const TAG = { doing:['进行中','tag doing'], review:['待验收','tag review'], done:['已验收','tag done'] };
+const M = () => MODELS[roleType];          // 当前岗位模型
+const isDev = () => roleType==='dev';
+const roleLabel = r => isDev() ? r : r + '实习生';   // 开发岗"后端开发"，产品岗"AI 产品实习生"
+
+function toast(msg){
+  const t = document.createElement('div');
+  t.className='toast';
+  t.innerHTML='<span class="tk">✓</span>'+msg;
+  $('#toasts').appendChild(t);
+  setTimeout(()=>{t.classList.add('out');setTimeout(()=>t.remove(),320);},2600);
+}
+function openModal(html){
+  $('#modalBox').innerHTML=html;
+  $('#modalMask').classList.add('open');
+}
+function closeModal(){$('#modalMask').classList.remove('open');}
+$('#modalMask').addEventListener('click',e=>{ if(e.target.id==='modalMask') closeModal(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeModal(); });
+
+/* ================= 导航 ================= */
+const MENUS = {
+  tl:[
+    { id:'overview', label:'培养总览', ic:icon.overview },
+    { id:'profile',  label:'个人成长', ic:icon.growth },
+    { id:'tasks',    label:'成长任务', ic:icon.tasks, badge:()=>state.interns.filter(i=>i.task.status==='review').length },
+    { id:'support',  label:'沟通与支持', ic:icon.chat },
+    { id:'review',   label:'阶段回顾', ic:icon.review },
+    { id:'prepare',  label:'转正准备', ic:icon.prepare },
+    { id:'manage',   label:'实习生管理', ic:icon.settings },
+  ],
+  intern:[
+    { id:'profile',  label:'我的成长', ic:icon.growth },
+    { id:'tasks',    label:'我的任务', ic:icon.tasks, badge:()=>state.interns.filter(i=>i.task.status==='review').length },
+    { id:'support',  label:'我的沟通', ic:icon.chat },
+    { id:'prepare',  label:'转正申请', ic:icon.prepare },
+  ],
+  hr:[
+    { id:'org',      label:'组织看板', ic:icon.overview },
+    { id:'profile',  label:'成长档案', ic:icon.growth },
+    { id:'prepare',  label:'转正流程', ic:icon.prepare, badge:()=>orgData().inWindow },
+    { id:'manage',   label:'实习生管理', ic:icon.settings },
+    { id:'config',   label:'模型配置', ic:icon.prepare },
+  ],
+};
+const TITLES = {
+  overview:['培养总览','成长工作台'],
+  profile:['个人成长','成长工作台'],
+  tasks:['成长任务','成长工作台'],
+  support:['沟通与支持','成长工作台'],
+  review:['阶段回顾','成长工作台'],
+  prepare:['转正准备','成长工作台'],
+  org:['组织看板','组织管理'],
+  manage:['实习生管理','成长工作台'],
+  config:['模型配置','组织管理'],
+};
+function renderNav(){
+  const menus = roleView==='tl'?MENUS.tl : roleView==='hr'?MENUS.hr : MENUS.intern;
+  $('#nav').innerHTML = menus.map(m=>`
+    <button class="nav-item ${curView===m.id?'active':''}" data-view="${m.id}">
+      ${m.ic}<span>${m.label}</span>
+      ${m.badge&&m.badge()>0?`<span class="badge">${m.badge()}</span>`:''}
+    </button>`).join('');
+  document.querySelectorAll('.nav-item').forEach(b=>{
+    b.addEventListener('click',()=>switchView(b.dataset.view));
+  });
+}
+function switchView(v){
+  curView = v;
+  if(v!=='overview') curFilter='all';
+  if(v!=='tasks') taskTab='all';
+  renderNav(); render();
+  $('#content').scrollTop=0;
+}
+function crumb(){
+  if(roleView==='hr'){
+    const cur = curView==='prepare' ? '转正流程' : curView==='manage' ? '实习生管理' : curView==='config' ? '模型配置' : '组织看板';
+    $('#crumb').innerHTML=`数智化服务平台 <span class="sep">/</span> <b>组织管理</b> <span class="sep">/</span> <span class="cur">${cur}</span>`;
+    return;
+  }
+  const t=TITLES[curView];
+  const cur = roleView==='intern' ? '实习生视角' : t[0];
+  $('#crumb').innerHTML=`数智化服务平台 <span class="sep">/</span> <b>${t[1]}</b> <span class="sep">/</span> <span class="cur">${cur}</span>`;
+}
+
+/* ================= 渲染：培养总览 ================= */
+function stats(){
+  const n=state.interns.length;
+  const review=state.interns.filter(i=>i.task.status==='review').length;
+  const need=state.interns.filter(i=>i.support&&i.support.status==='pending').length;
+  return {n,review,need};
+}
+function phaseMeta(idx){ return {name:getPhases()[idx].name, pct:idx+1, total:getPhases().length}; }
+function cardHTML(i,idx){
+  const ph=phaseMeta(i.phase);
+  const bars=getPhases().map((_,b)=>`<i class="${b<i.phase?'on':b===i.phase&&i.week%2===1?'half':''}"></i>`).join('');
+  const t=TAG[i.task.status];
+  const sup = i.support ? `
+    <div class="support-block ${i.support.status==='resolved'?'resolved':''}">
+      <div class="q">${i.support.status==='resolved'?'✓':'?'}</div>
+      <div class="st">${i.support.text}</div>
+      ${i.support.status==='pending'?`<button class="mini-btn" onclick="resolveSupport('${i.id}')">协调支持</button>`:`<span class="tag done" style="flex-shrink:0">已协调</span>`}
+    </div>`:'';
+  return `
+  <article class="card stagger" data-card="${i.id}">
+    <div class="card-top">
+      <div class="p-avatar">${i.name[0]}</div>
+      <div class="who"><div class="nm">${i.name}</div><div class="role">${roleLabel(i.role)} · 第 ${i.week} 周</div></div>
+      <div class="phase-pill"><span class="pdot"></span>${ph.name} · ${i.phase+1}/${ph.total}</div>
+    </div>
+    <div>
+      <div class="phasebar">${bars}</div>
+      <div class="phase-meta"><span>培养阶段 <b>${i.phase+1}/${ph.total}</b></span><span>带教 · ${i.tl}</span></div>
+    </div>
+    <div class="goal"><div class="gl">${icon.target}本周成长目标</div><p>${i.goal}</p></div>
+    <div class="task-row">
+      <div class="tt">${i.task.title}</div>
+      <span class="${t[1]}">${t[0]}</span>
+      ${i.task.status==='review'?`<button class="mini-btn" onclick="reviewTask('${i.id}')">去验收</button>`:''}
+    </div>
+    ${i.progress.text?`<div class="progress-line">${icon.star}<span>最近进步：</span><b>${i.progress.text}</b></div>`:''}
+    ${sup}
+    <div class="card-foot">
+      <div class="meeting">${icon.cal}下次 1:1 · <b>${i.meeting}</b></div>
+      <button class="archive-link" onclick="openArchive(${idx})">查看成长档案 ${icon.arrow}</button>
+    </div>
+  </article>`;
+}
+function renderOverview(){
+  const s=stats();
+  const list = state.interns.filter(i=>{
+    if(curFilter==='review') return i.task.status==='review';
+    if(curFilter==='need') return i.support&&i.support.status==='pending';
+    return true;
+  });
+  const hint = curFilter!=='all' ? `<div class="filter-hint">当前筛选：<a onclick="curFilter='all';render()">${curFilter==='review'?'待验收任务':'需要支持'}</a> · 点击清除筛选</div>` : '';
+  return `
+  <section class="hero stagger">
+    <div>
+      <div class="hero-eyebrow">QINGHE / GROWTH WORKSPACE</div>
+      <h1>每个人的成长，都看得见。</h1>
+      <div class="sub">关注本周的进步、卡点，以及你能提供的支持。</div>
+    </div>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="openNewTask()">＋ 新建成长任务</button>
+    </div>
+  </section>
+
+  <section class="weekbar stagger">
+    <div>
+      <div class="lbl">本周培养视图 <b>2026.09.07 — 09.11</b> · 示例周</div>
+      <div class="range">聚焦每周进步与卡点，按入职阶段关注，不做排名</div>
+    </div>
+    <div class="stats">
+      <div class="stat ${curFilter==='all'?'on':''}" onclick="curFilter='all';render()"><span class="n">${s.n}</span><span class="t">位伙伴</span></div>
+      <div class="stat orange ${curFilter==='review'?'on':''}" onclick="curFilter='review';render()"><span class="n">${s.review}</span><span class="t">待验收</span></div>
+      <div class="stat amber ${curFilter==='need'?'on':''}" onclick="curFilter='need';render()"><span class="n">${s.need}</span><span class="t">需要支持</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sect-head stagger">
+      <div><h2>我的实习生</h2><div class="h2sub">不同的起点，共同的成长</div></div>
+      <div class="note">${icon.heart} 按入职阶段关注 · 不做排名</div>
+    </div>
+    ${hint}
+    <div class="grid">
+      ${list.map((i,idx)=>cardHTML(i,idx)).join('')}
+    </div>
+    ${list.length===0?`<div class="placeholder"><div class="pi">🌱</div><b>当前筛选下暂无伙伴</b><span>点击统计数字清除筛选</span></div>`:''}
+  </section>`;
+}
+
+/* ================= 渲染：成长任务 ================= */
+function taskListHTML(){
+  const all=[];
+  state.interns.forEach(i=>{
+    all.push({...i.task, intern:i.name, ava:i.name[0], id:i.id});
+  });
+  const list = all.filter(t=>taskTab==='all'||t.status===taskTab);
+  const isIntern = roleView==='intern';
+  return `
+  <section class="hero stagger">
+    <div>
+      <div class="hero-eyebrow">GROWTH TASKS</div>
+      <h1>${isIntern?'我的任务':'成长任务'}</h1>
+      <div class="sub">任务不是考核，而是通往下一个阶段的台阶。</div>
+    </div>
+    ${isIntern?'':`<div class="hero-actions"><button class="btn-primary" onclick="openNewTask()">＋ 新建成长任务</button></div>`}
+  </section>
+  <div class="tabs stagger">
+    ${[['all','全部'],['doing','进行中'],['review','待验收'],['done','已验收']].map(t=>`<button class="tab ${taskTab===t[0]?'active':''}" onclick="taskTab='${t[0]}';render()">${t[1]}<span style="opacity:.65;margin-left:4px">${t[0]==='all'?all.length:all.filter(x=>x.status===t[0]).length}</span></button>`).join('')}
+  </div>
+  <div class="task-list">
+    ${list.map(t=>`
+      <div class="task-item stagger">
+        <div class="ti-ava">${t.ava}</div>
+        <div class="ti-main">
+          <div class="ti-title">${t.title}</div>
+          <div class="ti-meta"><b>${isIntern?'我':t.intern}</b><span>${state.interns.find(i=>i.id===t.id).tl} 带教</span><span>本周培养周期</span></div>
+        </div>
+        <span class="${TAG[t.status][1]}">${TAG[t.status][0]}</span>
+        ${t.status==='review'&&isIntern?`<button class="mini-btn" onclick="toast('验收由带教导师完成')">等导师验收</button>`:''}
+        ${t.status==='review'&&!isIntern?`<button class="mini-btn" onclick="reviewTask('${t.id}')">去验收</button>`:''}
+        ${t.status==='doing'&&isIntern?`<button class="mini-btn" onclick="openSubmitWork('${t.id}')">提交成果</button>`:''}
+        ${t.status==='doing'&&!isIntern?`<button class="mini-btn" onclick="toReview('${t.id}')">提交验收</button>`:''}
+      </div>`).join('')}
+  </div>`;
+}
+
+/* ================= 渲染：个人成长 ================= */
+function skillBars(skills){
+  return getSkillDims().map(d=>`
+    <div class="skill-row">
+      <div class="sn">${d.name}</div>
+      <div class="bar"><i style="width:${(skills[d.key]||0)/5*100}%"></i></div>
+      <div class="sv">${skills[d.key]||0}/5</div>
+    </div>`).join('');
+}
+function profileHTML(){
+  const i=state.interns[internViewIdx];
+  const ph=phaseMeta(i.phase);
+  const isIntern = roleView==='intern';
+  return `
+  <div class="profile-wrap">
+    <aside class="pick-list stagger">
+      ${isIntern
+        ? `<div class="pick-item active"><div class="p-avatar">${i.name[0]}</div><div class="pi"><b>${i.name}</b><span>${roleLabel(i.role)} · 第${i.week}周</span></div><div class="ph">${i.phase+1}/4</div></div>`
+        : state.interns.map((x,xi)=>`
+          <button class="pick-item ${xi===internViewIdx?'active':''}" onclick="internViewIdx=${xi};render()">
+            <div class="p-avatar">${x.name[0]}</div>
+            <div class="pi"><b>${x.name}</b><span>${roleLabel(x.role)} · 第${x.week}周</span></div>
+            <div class="ph">${x.phase+1}/4</div>
+          </button>`).join('')}
+    </aside>
+    <div class="panel">
+      <div class="panel-card stagger">
+        <div class="pf-head">
+          <div class="p-avatar">${i.name[0]}</div>
+          <div>
+            <div class="nm">${i.name}</div>
+            <div class="meta">
+              <span>${icon.flag}${roleLabel(i.role)}</span>
+              <span>${icon.cal}入职 ${i.joinDate?i.joinDate:(i.join||'')}</span>
+              <span>${icon.heart}带教 ${i.tl}</span>
+              <span>${icon.flag}${i.degree||'本科'} · ${i.school||'—'}${i.gradDate?` · ${i.gradDate} 毕业`:''}</span>
+            </div>
+          </div>
+          <div class="phase-pill" style="margin-left:auto"><span class="pdot"></span>${ph.name} · ${i.phase+1}/${ph.total}</div>
+        </div>
+        <div class="phasebar" style="margin-top:16px">${getPhases().map((_,b)=>`<i class="${b<i.phase?'on':''}"></i>`).join('')}</div>
+        <div class="phase-meta" style="margin-top:6px"><span>培养阶段 <b>${i.phase+1}/4</b></span><span>当前周目标：${i.goal}</span></div>
+      </div>
+
+      <div class="panel-card stagger">
+        <h3>${icon.target}能力维度${isIntern?`<span style="margin-left:auto;font-size:11px;color:var(--ink-3);font-weight:400">结合阶段自评与导师确认 · 5 分制</span>`:''}</h3>
+        ${skillBars(i.skills)}
+        <div class="skill-legend">${getSkillDims().map(d=>`<span>▲ ${d.name}</span>`).join('')}</div>
+        ${isIntern?`<div style="margin-top:14px;display:flex;gap:10px"><button class="btn-primary sm" onclick="openSelfReview()">阶段自评</button><button class="btn-ghost" onclick="toast('已提交卡点提报（演示）')">提报卡点</button></div>`:''}
+      </div>
+
+      <div class="panel-card stagger">
+        <h3>${icon.target}成长轨迹</h3>
+        <div class="tl">
+          ${i.timeline.map(t=>`
+            <div class="tl-item ${t.cur?'':'past'}">
+              <div class="tw">${t.w}${t.cur?'<span class="tcur">当前</span>':''}</div>
+              <div class="tt">${t.t}</div>
+              <div class="td">${t.d}</div>
+            </div>`).join('')}
+        </div>
+      </div>
+
+      <div class="duo" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+        <div class="panel-card stagger">
+          <h3>${icon.cal}1:1 记录</h3>
+          ${i.m1.map(m=>`<div class="m1on1"><div class="d">${m.d}</div><div class="c">${m.c}</div></div>`).join('')}
+        </div>
+        <div class="panel-card stagger">
+          <h3>${icon.star}进步记录</h3>
+          ${i.progressLog.map(p=>`
+            <div class="m1on1"><div class="d">${p.star?'★':'·'}</div><div class="c"><b>${p.t}</b><br>${p.d}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+function openArchive(idx){ internViewIdx=idx; switchView('profile'); }
+
+/* ================= 渲染：沟通与支持 ================= */
+function supportHTML(){
+  const isIntern = roleView==='intern';
+  return `
+  <section class="hero stagger">
+    <div>
+      <div class="hero-eyebrow">COMMUNICATION</div>
+      <h1>${isIntern?'我的沟通':'沟通与支持'}</h1>
+      <div class="sub">让每一次 1:1 有结论，让每个卡点有人接住。</div>
+    </div>
+  </section>
+  <div class="duo">
+    <div class="panel-card stagger" style="box-shadow:var(--shadow-s)">
+      <h3>${icon.cal}${isIntern?'1:1 安排':'本周 1:1 安排'}</h3>
+      <div class="plain-list">
+        ${state.interns.filter(x=>!isIntern||x.id===state.interns[internViewIdx].id).map(i=>`
+          <div class="plain-row">
+            <div class="ic">${icon.cal}</div>
+            <div class="pm"><b>${i.name} · 下次 1:1</b><span>${i.meeting} · 带教 ${i.tl} · 建议时长 30min</span></div>
+            <span class="tag doing">已排期</span>
+          </div>`).join('')}
+      </div>
+    </div>
+    <div class="panel-card stagger" style="box-shadow:var(--shadow-s)">
+      <h3>${icon.bell}支持请求${isIntern?'（我的）':''}</h3>
+      <div class="plain-list">
+        ${state.interns.filter(x=>x.support&&(!isIntern||x.id===state.interns[internViewIdx].id)).map(i=>`
+          <div class="plain-row">
+            <div class="ic" style="background:${i.support.status==='pending'?'var(--amber-bg)':'var(--brand-softer)'};color:${i.support.status==='pending'?'var(--amber)':'var(--brand-deep)'}">${i.support.status==='pending'?'?':'✓'}</div>
+            <div class="pm"><b>${i.name} · ${i.support.status==='pending'?'待协调':'已协调'}</b><span>${i.support.text}</span></div>
+            ${i.support.status==='pending'&&!isIntern?`<button class="mini-btn" onclick="resolveSupport('${i.id}')">去协调</button>`:i.support.status==='pending'?`<span class="tag review">待协调</span>`:`<span class="tag done">已解决</span>`}
+          </div>`).join('')}
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ================= 渲染：阶段回顾 ================= */
+function reviewHTML(){
+  const intern=state.interns[0];
+  return `
+  <section class="hero stagger">
+    <div>
+      <div class="hero-eyebrow">STAGE REVIEW</div>
+      <h1>阶段回顾</h1>
+      <div class="sub">每个阶段的复盘，都是转正评估的过程证据。</div>
+    </div>
+  </section>
+  <div class="stage-grid">
+    ${getPhases().map((p,pi)=>`
+      <div class="stage-card stagger ${pi<intern.phase?'done':pi===intern.phase?'cur':''}">
+        <div class="sn">0${pi+1}</div>
+        <span class="sn2">${pi<intern.phase?'已完成':pi===intern.phase?'进行中':'未开始'}</span>
+        <h4>${p.name}</h4>
+        <div class="desc">${p.desc}</div>
+        <div class="skills">${p.skills.map(s=>`<span>${s}</span>`).join('')}</div>
+        <div class="phase-meta" style="margin-top:10px">${p.range}</div>
+      </div>`).join('')}
+  </div>
+
+  <div class="sect-head" style="margin-top:26px">
+    <div><h2 style="font-size:16px">阶段晋升规则</h2><div class="h2sub">满足全部 3 项，自动进入下一阶段</div></div>
+  </div>
+  <div class="rule-grid">
+    ${getRules().map(r=>`
+      <div class="rule-card stagger">
+        <div class="rn">${r.n}</div>
+        <div class="rt"><b>${r.t}</b><span>${r.s}</span></div>
+      </div>`).join('')}
+  </div>
+
+  <div class="panel-card">
+    <h3>${icon.review}${intern.name} · 最近一次阶段回顾（${getPhases()[Math.min(intern.phase,getPhases().length-1)].name}）</h3>
+    <div class="duo" style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+      <div>
+        <div class="m1on1"><div class="d">01</div><div class="c"><b>做得好的</b><br>${isDev()?'从复现到修复闭环走通，能独立讲清业务缺陷链路；复盘笔记结构清晰。':'用户访谈准备充分，3 类场景假设都有工单数据支撑，洞察可验证。'}</div></div>
+        <div class="m1on1"><div class="d">02</div><div class="c"><b>待提升的</b><br>${isDev()?'回归测试覆盖面不足，需要建立边界场景意识。':'需求优先级判断还依赖导师，需要建立自己的排序框架。'}</div></div>
+      </div>
+      <div>
+        <div class="m1on1"><div class="d">03</div><div class="c"><b>下一步行动</b><br>${isDev()?'补齐边界用例设计；下周目标聚焦「修复 + 回归」完整闭环。':'学习 RICE 排序方法；下周目标聚焦「洞察 → 需求池优先级」。'}</div></div>
+        <div class="m1on1"><div class="d">04</div><div class="c"><b>导师评价</b><br>${isDev()?'进步速度符合预期，建议挑战更大颗粒度的独立任务。':'洞察力进步明显，建议下一阶段挑战独立设计小功能模块。'}</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ================= 渲染：转正准备 ================= */
+/* 转正考核 V2：三维度必要条件（产品岗） */
+const CHECK_DIMS = [
+  { key:'cap', name:'能力 · 子领域全流程', desc:'独立承担某个子领域的完整闭环：规划 → 需求拆解/细化/优先级 → 需求澄清落地 → 项目跟进 → 上线验收 → 数据运营' },
+  { key:'ai',  name:'实践 · AI 场景',     desc:'最少主导参与 2 个 AI 场景的设计、落地、演进全周期' },
+  { key:'gen', name:'综合 · 量化产出',    desc:'需求文档、需求澄清、竞品分析、数据运营等可量化成果达标' },
+];
+const CHECK_ITEMS = [
+  { key:'doc',     label:'输出需求文档', target:5, desc:'PRD 质量经导师评审通过' },
+  { key:'clarify', label:'参加需求澄清', target:5, desc:'含需求评审会与澄清会' },
+  { key:'cmp',     label:'完成竞品分析', target:2, desc:'含对比结论与机会判断' },
+  { key:'ops',     label:'参与数据运营', target:2, desc:'能通过数据识别问题并提出解决方案' },
+  { key:'ai',      label:'主导/参与 AI 场景', target:2, desc:'设计·落地·演进全周期' },
+  { key:'flow',    label:'独立承担子领域全流程', target:1, desc:'规划→拆解→澄清→跟进→验收→数据运营' },
+];
+const CHECK_ICON = {
+  cap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5c0-1 .8-2 2-2h12c1.2 0 2 1 2 2v14l-3-2-2 2-3-2-3 2-3-2z"/></svg>',
+  ai:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M8 12h8"/></svg>',
+  gen:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="m3.5 6 1 1 2-2M3.5 12l1 1 2-2M3.5 18l1 1 2-2"/></svg>',
+};
+function v2CheckHTML(i){
+  const q = i.quant || { doc:0, clarify:0, cmp:0, ops:0, ai:0, flow:0, skill:false };
+  const items = CHECK_ITEMS.map(it=>{
+    const v = q[it.key]||0;
+    const full = v>=it.target;
+    const done = v>0;
+    return `
+    <div class="check-item">
+      <div class="cb ${full?'yes':done?'part':'no'}">${full?'✓':done?v:'·'}</div>
+      <div class="ct"><b>${it.label}</b><span>${it.desc}</span></div>
+      <div class="cp"><b class="${full?'full':'warn'}">${v}</b><em>/</em>${it.target}</div>
+    </div>`;
+  }).join('');
+  return `
+  <div class="dim3">
+    ${CHECK_DIMS.map((d,di)=>`
+      <div class="dim3-card stagger">
+        <div class="dno">0${di+1}</div>
+        <div class="dic">${CHECK_ICON[d.key]}</div>
+        <h4>${d.name}</h4>
+        <div class="desc">${d.desc}</div>
+        <div class="req">必要条件</div>
+      </div>`).join('')}
+  </div>
+  <div class="panel-card stagger">
+    <h3>${icon.tasks}量化产出清单（必要条件达成度）</h3>
+    <div class="check-list">${items}</div>
+    <div class="bonus">
+      <div class="bic">+</div>
+      <div class="bt">加分项：沉淀 <b>Skill</b> 给团队使用（如 Agent 技能、提效模板、自动化脚本）—— ${q.skill?'已沉淀 1 个并投入使用':'未完成'}</div>
+      ${q.skill?'<span class="tag done">已加分</span>':'<span class="tag doing">待完成</span>'}
+    </div>
+  </div>
+  <div class="ready-panel stagger" style="margin-top:18px">
+    <div class="rk">🎯</div>
+    <div>
+      <h3>${q.flow>=1?'已满足转正必要条件，可进入评审':'尚未满足全部必要条件'}</h3>
+      <p>转正必要条件：能力全流程闭环 ≥1 · AI 场景 ≥2 · 5 份需求文档 · 5 场需求澄清 · 2 份竞品分析 · 2 场数据运营（缺项以琥珀色标注）；全部达成 + 导师评估通过后可进入评审会。</p>
+    </div>
+  </div>`;
+}
+function prepareHTML(){
+  const i=state.interns[internViewIdx];
+  const isIntern = roleView==='intern';
+  const isHR = roleView==='hr';
+  const isDevMode = isDev();
+  const pick = !isIntern ? `
+    <div class="pt-pick stagger">
+      <span class="pl">查看伙伴</span>
+      <select onchange="internViewIdx=+this.value;render()">
+        ${state.interns.map((x,xi)=>`<option value="${xi}" ${xi===internViewIdx?'selected':''}>${x.name} · ${roleLabel(x.role)}（第${x.week}周）</option>`).join('')}
+      </select>
+    </div>` : '';
+  const v1 = `
+    <div class="panel-card stagger">
+      <h3>${icon.prepare}${isDevMode?'开发':'产品'}岗转正评估维度（含权重）· V1</h3>
+      ${M().evalDims.map(d=>`
+        <div class="dim-row">
+          <div class="dn"><b>${d.name}</b></div>
+          <div class="dw">${d.w}</div>
+          <div class="dd">${d.desc}</div>
+        </div>`).join('')}
+      <div style="margin-top:12px;font-size:11.5px;color:var(--ink-3)">评估锚点：1-5 分制 · 3 分为合格线 · 维度得分 × 权重 = 综合分 · 过程数据（任务/1:1/阶段回顾）自动沉淀为评分证据</div>
+    </div>`;
+  const v2 = v2CheckHTML(i);
+  return `
+  <section class="hero stagger">
+    <div>
+      <div class="hero-eyebrow">READINESS</div>
+      <h1>转正准备</h1>
+      <div class="sub">让转正决策有过程数据支撑，而不是一次答辩定生死。</div>
+    </div>
+    <div class="hero-actions">${pick}</div>
+  </section>
+  <div class="steps stagger">
+    ${[['材料准备','成长档案 + 成果清单'],['必要条件核验','V2 考核体系'],['导师评估','带教导师评价'],['评审会','答辩 + 集体评议'],['结果归档','HR 确认与反馈']].map((s,si)=>`
+      <div class="step ${si<1?'done':si===1?'cur':''}"><div class="dot">${si<1?'✓':si+1}</div><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')}
+  </div>
+  ${!isDevMode?`
+  <div class="panel-card stagger" style="margin-bottom:16px">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
+      <div>
+        <h3 style="margin-bottom:2px">${icon.prepare}转正考核体系</h3>
+        <div style="font-size:11.5px;color:var(--ink-3)">V1 = 维度权重评估（原体系，保留可查）· V2 = 三维度必要条件（最新）</div>
+      </div>
+      <div class="ver-switch">
+        <button class="ver-btn ${checkVer==='v1'?'active':''}" onclick="switchVer('v1')">V1 · 维度权重</button>
+        <button class="ver-btn ${checkVer==='v2'?'active':''}" onclick="switchVer('v2')">V2 · 必要条件</button>
+      </div>
+    </div>
+  </div>
+  ${checkVer==='v1'?v1:v2}
+  `:v1}
+  `;
+}
+function switchVer(v){
+  checkVer = v;
+  render();
+  toast(v==='v2' ? '已切换至 V2 · 三维度必要条件考核' : '已切换至 V1 · 维度权重评估（保留历史版本）');
+}
+
+/* ================= 实习生管理（添加/修改/删除） ================= */
+function defaultIntern(name, roleName){
+  const wk = 1;
+  return {
+    id:'new'+Date.now(), name, role:roleName, week:wk, phase:0,
+    goal:'熟悉团队与业务，明确本周成长目标',
+    task:{ title:'待分配 · 本周成长任务', status:'doing' },
+    progress:{ text:'', star:false },
+    support:null, meeting:'下周待定', tl:'待分配',
+    skills: isDev()?{code:1,debug:1,quality:1,doc:1,comm:1}:{insight:1,design:1,data:1,doc:1,collab:1},
+    quant:{ doc:0, clarify:0, cmp:0, ops:0, ai:0, flow:0, skill:false },
+    timeline:[{ w:'W1', t:'入职融入', d:'熟悉团队与业务，明确培养计划', cur:true }],
+    m1:[], progressLog:[], join:'2026.09.07',
+    joinDate:'2026-09-07', gradDate:'', school:'', degree:'本科',
+  };
+}
+function manageHTML(){
+  const list = state.interns;
+  return `
+  <section class="hero stagger">
+    <div>
+      <div class="hero-eyebrow">INTERN MANAGEMENT</div>
+      <h1>实习生管理</h1>
+      <div class="sub">${MODELS[roleType].label}模式 · 共 ${list.length} 人，增删改实时联动全站数据</div>
+    </div>
+    <div class="hero-actions"><button class="btn-primary" onclick="openInternModal(-1)">＋ 添加实习生</button></div>
+  </section>
+  <div class="mg-list">
+    ${list.length===0?`<div class="mg-empty">暂无实习生，点击右上角「添加实习生」</div>`:
+      list.map((i,idx)=>`
+      <div class="mg-row stagger">
+        <div class="p-avatar">${i.name[0]}</div>
+        <div class="mg-info">
+          <b>${i.name}</b>
+          <div class="mi"><span>${roleLabel(i.role)} · 第${i.week}周</span><span>阶段 ${i.phase+1}/4</span><span>带教 ${i.tl}</span><span>入职 ${i.join}</span><span>${i.degree||'本科'} · ${i.school||'—'}</span></div>
+        </div>
+        <div class="mg-goal"><span>本周目标</span>${i.goal}</div>
+        <div class="mg-ops">
+          <button class="mini-btn" onclick="openInternModal(${idx})">编辑</button>
+          <button class="mini-btn danger" onclick="confirmDelete(${idx})">删除</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+function openInternModal(idx){
+  const isEdit = idx>=0;
+  const i = isEdit ? state.interns[idx] : null;
+  const roleOpts = isDev() ? ['后端开发','前端开发','质量工程','AI 应用开发'] : ['AI 产品','用户产品','数据产品'];
+  openModal(`
+    <h3>${isEdit?'编辑实习生':'添加实习生'}</h3>
+    <div class="msub">${isEdit?'修改信息将实时同步到成长档案与培养总览':'新伙伴将出现在培养总览与组织看板'}</div>
+    <div class="field"><label>姓名 <span class="req">*</span></label><input id="imName" value="${isEdit?i.name:''}" placeholder="实习生姓名"></div>
+    <div class="field"><label>岗位 <span class="req">*</span></label>
+      <select id="imRole">${roleOpts.map(r=>`<option ${isEdit&&i.role===r?'selected':''}>${r}</option>`).join('')}</select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>入职时间 <span class="req">*</span></label><input id="imJoinDate" type="date" value="${isEdit?(i.joinDate||''):'2026-09-07'}" onchange="autoCalcWeek()"></div>
+      <div class="field"><label>入职周数 <span class="req">*</span>（自动计算 · 可修改）</label><input id="imWeek" type="number" min="1" max="12" value="${isEdit?i.week:1}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>培养阶段</label>
+        <select id="imPhase">${getPhases().map((p,pi)=>`<option value="${pi}" ${isEdit&&i.phase===pi?'selected':''}>${p.name}</option>`).join('')}</select>
+      </div>
+      <div class="field"><label>毕业时间${(isEdit&&!i.gradDate)?'（在读可空）':''}</label><input id="imGradDate" type="date" value="${isEdit?(i.gradDate||''):''}"></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>毕业学校</label><input id="imSchool" value="${isEdit?(i.school||''):''}" placeholder="毕业院校名称"></div>
+      <div class="field"><label>学历</label>
+        <select id="imDegree">${['本科','研究生','博士'].map(d=>`<option ${isEdit&&i.degree===d?'selected':''}>${d}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="field"><label>带教导师 <span class="req">*</span></label><input id="imTl" value="${isEdit?i.tl:''}" placeholder="带教导师姓名"></div>
+    <div class="field"><label>本周成长目标 <span class="req">*</span></label><textarea id="imGoal" placeholder="本周可验收的一句话目标">${isEdit?i.goal:''}</textarea></div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="saveIntern(${idx})">${isEdit?'保存修改':'添加'}</button>
+    </div>`);
+}
+/* 入职时间 → 自动计算入职周数（可手动修改）：入职当周为第 1 周 */
+function autoCalcWeek(){
+  const v = document.getElementById('imJoinDate');
+  const w = document.getElementById('imWeek');
+  if(!v || !w || !v.value) return;
+  const days = Math.floor((Date.now() - new Date(v.value).getTime()) / 86400000);
+  const calc = Math.max(1, Math.floor(days/7) + 1);
+  w.value = calc;
+}
+function saveIntern(idx){
+  const name=$('#imName').value.trim();
+  const role=$('#imRole').value;
+  const week=Math.min(12,Math.max(1,parseInt($('#imWeek').value)||1));
+  const phase=parseInt($('#imPhase').value)||0;
+  const joinDate=$('#imJoinDate').value||'';
+  const gradDate=$('#imGradDate').value||'';
+  const school=$('#imSchool').value.trim();
+  const degree=$('#imDegree').value;
+  const tl=$('#imTl').value.trim();
+  const goal=$('#imGoal').value.trim();
+  if(!name){ toast('请填写姓名'); return; }
+  if(!tl){ toast('请填写带教导师'); return; }
+  if(!goal){ toast('请填写本周成长目标'); return; }
+  if(idx>=0){
+    const i=state.interns[idx];
+    Object.assign(i,{name,role,week,phase,joinDate,gradDate,school,degree,tl,goal});
+    if(joinDate){ i.join = joinDate.slice(5).replace('-','.'); }
+    toast(`已更新实习生：${name}`);
+  } else {
+    const ni=defaultIntern(name,role);
+    ni.week=week; ni.phase=phase; ni.joinDate=joinDate||'2026-09-07'; ni.gradDate=gradDate; ni.school=school; ni.degree=degree; ni.tl=tl; ni.goal=goal;
+    ni.join = ni.joinDate.slice(5).replace('-','.');
+    state.interns.push(ni);
+    toast(`已添加实习生：${name}`);
+  }
+  closeModal(); render();
+}
+function confirmDelete(idx){
+  const i=state.interns[idx];
+  openModal(`
+    <h3>删除实习生</h3>
+    <div class="msub">删除后该实习生的任务 / 1:1 / 阶段回顾等记录将一并移除，不可恢复</div>
+    <div class="plain-row" style="box-shadow:none;border:1px solid var(--line);margin-bottom:14px">
+      <div class="p-avatar" style="width:38px;height:38px;border-radius:12px;font-size:14px">${i.name[0]}</div>
+      <div class="pm"><b>${i.name}</b><span>${roleLabel(i.role)} · 第${i.week}周 · 阶段${i.phase+1}/4 · 带教 ${i.tl}</span></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" style="background:#B3543F" onclick="doDelete(${idx})">确认删除</button>
+    </div>`);
+}
+function doDelete(idx){
+  const i=state.interns[idx];
+  state.interns.splice(idx,1);
+  if(internViewIdx>=state.interns.length) internViewIdx=Math.max(0,state.interns.length-1);
+  closeModal(); render();
+  toast(`已删除实习生：${i.name}`);
+}
+
+/* ================= 模型配置（阶段/晋升规则可配置化） ================= */
+function configHTML(){
+  const phases = getPhases();
+  const rules = getRules();
+  const cfg = customByJob[roleType];
+  const f = getFooter();
+  return `
+  <section class="hero stagger">
+    <div>
+      <div class="hero-eyebrow">MODEL CONFIG</div>
+      <h1>模型配置</h1>
+      <div class="sub">${MODELS[roleType].label}培养模型 · ${cfg?'已自定义':'使用默认模型'} · 保存后全站实时生效</div>
+    </div>
+    <div class="hero-actions">
+      ${cfg?`<button class="btn-ghost" onclick="resetModelCfg()">恢复默认模型</button>`:''}
+      <button class="btn-primary" onclick="addPhase()">＋ 添加阶段</button>
+    </div>
+  </section>
+
+  <div class="panel-card stagger">
+    <h3>${icon.prepare}培养阶段（${phases.length} 个）</h3>
+    <div class="sort-hint">${icon.arrow} 拖动行或点击 ↑↓ 调整阶段顺序，排序号自动按从小到大重排；实习生在阶段路径中的位置保持不变</div>
+    <div class="org-rows" id="phaseList">
+      ${phases.map((p,pi)=>`
+        <div class="org-row phase-drag" draggable="true" data-idx="${pi}"
+             ondragstart="dragPhase(event)" ondragover="dragOverPhase(event)" ondrop="dropPhase(event)" ondragend="dragEndPhase()">
+          <div class="drag-handle">⠿</div>
+          <div class="ot">
+            <b><span class="sort-badge">${String(p.sort||pi+1).padStart(2,'0')}</span>${p.name}</b>
+            <span>${p.range} · 能力：${p.skills.join(' / ')}</span>
+            <span class="ot-desc">${p.desc}</span>
+          </div>
+          <div class="mg-ops">
+            <button class="mini-btn" onclick="movePhase(${pi},-1)" ${pi===0?'disabled style="opacity:.35"':''}>↑ 前移</button>
+            <button class="mini-btn" onclick="movePhase(${pi},1)" ${pi===phases.length-1?'disabled style="opacity:.35"':''}>↓ 后移</button>
+            <button class="mini-btn" onclick="editPhase(${pi})">编辑</button>
+            <button class="mini-btn danger" onclick="confirmDelPhase(${pi})" ${phases.length<=1?'disabled style="opacity:.4"':''}>删除</button>
+          </div>
+        </div>`).join('')}
+    </div>
+  </div>
+
+  <div class="panel-card stagger" style="margin-top:16px">
+    <h3>${icon.flag}晋升规则参数</h3>
+    <div class="rule-grid" style="margin-bottom:0">
+      ${rules.map(r=>`
+        <div class="rule-card">
+          <div class="rn">${r.n}</div>
+          <div class="rt"><b>${r.t}</b><span>${r.s}</span></div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:14px;display:flex;gap:12px;align-items:center">
+      <button class="mini-btn" style="padding:8px 16px" onclick="editRules()">编辑晋升参数</button>
+      <span style="font-size:11.5px;color:var(--ink-3)">任务验收数、能力评分线可配置，阶段回顾页与晋升判定同步生效</span>
+    </div>
+  </div>
+
+  <div class="panel-card stagger" style="margin-top:16px">
+    <h3>${icon.target}能力维度（${getSkillDims().length} 个）</h3>
+    <div style="font-size:11.5px;color:var(--ink-3);margin:-8px 0 12px">影响个人成长能力图与阶段自评，增删改后全站实时生效</div>
+    <div class="org-rows">
+      ${getSkillDims().map((d,di)=>`
+        <div class="org-row">
+          <div class="ot">
+            <b>${String(di+1).padStart(2,'0')} · ${d.name}</b>
+            <span>${d.desc}</span>
+          </div>
+          <div class="mg-ops">
+            <button class="mini-btn" onclick="editSkillDim(${di})">编辑</button>
+            <button class="mini-btn danger" onclick="confirmDelSkillDim(${di})" ${getSkillDims().length<=1?'disabled style="opacity:.4"':''}>删除</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:12px">
+      <button class="mini-btn" style="padding:8px 16px" onclick="addSkillDim()">＋ 添加能力维度</button>
+    </div>
+  </div>
+
+  <div class="panel-card stagger" style="margin-top:16px">
+    <h3>${icon.heart}左下角描述</h3>
+    <div style="font-size:11.5px;color:var(--ink-3);margin:-8px 0 12px">配置系统侧栏左下角的品牌标语 / 平台描述 / 版本号，保存后实时生效</div>
+    <div class="field"><label>品牌标语</label><input id="cfQuote" value="${f.quote}"></div>
+    <div class="field"><label>平台描述</label><input id="cfMeta" value="${f.meta}"></div>
+    <div class="field"><label>版本号</label><input id="cfVer" value="${f.ver}"></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="btn-primary sm" onclick="saveFooter()">保存描述</button>
+      ${cfg&&cfg.footer?`<button class="btn-ghost" onclick="resetFooter()">恢复默认</button>`:''}
+      <span style="font-size:11px;color:var(--ink-3)">预览：<b id="cfPreview" style="color:var(--brand-deep)">${f.quote}</b></span>
+    </div>
+  </div>`;
+}
+function saveFooter(){
+  const cfg=ensureCfg();
+  cfg.footer = {
+    quote: $('#cfQuote').value.trim() || '三个人，各自向前一步',
+    meta: $('#cfMeta').value.trim() || '数智化服务平台 · 双岗位培养',
+    ver: $('#cfVer').value.trim() || 'v0.5 · DEMO 原型',
+  };
+  closeModal();
+  render();
+  toast('左下角描述已更新');
+}
+function resetFooter(){
+  const cfg=ensureCfg();
+  cfg.footer=null;
+  render();
+  toast('左下角描述已恢复默认');
+}
+
+/* ================= 能力维度配置 ================= */
+function editSkillDim(di){
+  const d = getSkillDims()[di];
+  openModal(`
+    <h3>编辑能力维度</h3>
+    <div class="field"><label>维度名称 <span class="req">*</span></label><input id="sdName" value="${d.name}"></div>
+    <div class="field"><label>维度描述</label><input id="sdDesc" value="${d.desc}"></div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="saveSkillDim(${di})">保存</button>
+    </div>`);
+}
+function saveSkillDim(di){
+  const cfg = ensureCfg();
+  const name = $('#sdName').value.trim();
+  if(!name){ toast('请填写维度名称'); return; }
+  cfg.skillDims[di].name = name;
+  cfg.skillDims[di].desc = $('#sdDesc').value.trim();
+  closeModal(); render();
+  toast(`能力维度「${name}」已更新`);
+}
+function addSkillDim(){
+  const cfg = ensureCfg();
+  cfg.skillDims.push({ key:'dim'+Date.now(), name:`新维度${cfg.skillDims.length+1}`, desc:'维度描述待配置' });
+  render(); toast('已添加能力维度，点击「编辑」完善配置');
+}
+function confirmDelSkillDim(di){
+  const d = getSkillDims()[di];
+  openModal(`
+    <h3>删除能力维度</h3>
+    <div class="msub">删除「${d.name}」后，个人成长能力图与阶段自评将不再展示该维度（历史评分保留在数据中）</div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" style="background:#B3543F" onclick="delSkillDim(${di})">确认删除</button>
+    </div>`);
+}
+function delSkillDim(di){
+  const cfg = ensureCfg();
+  cfg.skillDims.splice(di,1);
+  closeModal(); render();
+  toast('能力维度已删除');
+}
+function editPhase(pi){
+  const cfg=ensureCfg(); const p=cfg.phases[pi];
+  openModal(`
+    <h3>编辑阶段 · ${p.name}</h3>
+    <div class="msub">修改将全站生效（培养总览/个人成长/阶段回顾/转正页）</div>
+    <div class="field"><label>阶段名称 <span class="req">*</span></label><input id="cfName" value="${p.name}"></div>
+    <div class="field"><label>建议周期</label><input id="cfRange" value="${p.range}" placeholder="如：第 1-3 周"></div>
+    <div class="field"><label>阶段描述</label><textarea id="cfDesc">${p.desc}</textarea></div>
+    <div class="field"><label>能力标签（逗号分隔）</label><input id="cfSkills" value="${p.skills.join('，')}"></div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="savePhase(${pi})">保存</button>
+    </div>`);
+}
+function savePhase(pi){
+  const cfg=ensureCfg();
+  const name=$('#cfName').value.trim();
+  if(!name){ toast('请填写阶段名称'); return; }
+  cfg.phases[pi].name=name;
+  cfg.phases[pi].range=$('#cfRange').value.trim()||'周期待定';
+  cfg.phases[pi].desc=$('#cfDesc').value.trim()||'阶段描述待定';
+  cfg.phases[pi].skills=$('#cfSkills').value.split(/[,，]/).map(s=>s.trim()).filter(Boolean);
+  closeModal(); render();
+  toast(`阶段「${name}」已更新，全站生效`);
+}
+function addPhase(){
+  const cfg=ensureCfg();
+  const maxSort = Math.max(0, ...cfg.phases.map(p=>p.sort||0));
+  cfg.phases.push({ name:`新阶段${cfg.phases.length+1}`, range:'周期待定', desc:'阶段描述待配置', skills:['待定义'], sort:maxSort+1 });
+  render();
+  toast('已添加阶段，点击「编辑」完善配置');
+}
+function confirmDelPhase(pi){
+  const p=getPhases()[pi];
+  openModal(`
+    <h3>删除阶段</h3>
+    <div class="msub">删除「${p.name}」后，处于该阶段的实习生将自动调整到上一阶段</div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" style="background:#B3543F" onclick="delPhase(${pi})">确认删除</button>
+    </div>`);
+}
+function delPhase(pi){
+  const cfg=ensureCfg();
+  cfg.phases.splice(pi,1);
+  closeModal(); render();
+  toast('阶段已删除，实习生阶段已自动调整');
+}
+function editRules(){
+  const c=ensureCfg().params;
+  openModal(`
+    <h3>晋升规则参数</h3>
+    <div class="msub">调整后「阶段回顾」页晋升规则卡片同步更新</div>
+    <div class="field"><label>任务验收数阈值（晋升条件 1）<span class="req">*</span></label><input id="cfTaskMin" type="number" min="1" max="10" value="${c.taskMin}"></div>
+    <div class="field"><label>关键能力评分线（晋升条件 3）</label>
+      <select id="cfScoreMin">${[3,4,5].map(v=>`<option value="${v}" ${c.scoreMin===v?'selected':''}>≥ ${v}/5（${v===3?'合格线':v===4?'良好线':'优秀线'}）</option>`).join('')}</select>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="saveRules()">保存参数</button>
+    </div>`);
+}
+function saveRules(){
+  const c=ensureCfg().params;
+  c.taskMin=Math.min(10,Math.max(1,parseInt($('#cfTaskMin').value)||2));
+  c.scoreMin=parseInt($('#cfScoreMin').value)||3;
+  closeModal(); render();
+  toast(`晋升参数已更新：验收≥${c.taskMin} · 评分≥${c.scoreMin}/5`);
+}
+function resetModelCfg(){
+  customByJob[roleType]=null;
+  render(); toast('已恢复默认培养模型');
+}
+
+/* ================= 阶段拖拽排序 ================= */
+let dragFrom = -1;
+function dragPhase(e){
+  const row = e.target.closest('.phase-drag');
+  if(!row) return;
+  dragFrom = parseInt(row.dataset.idx);
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', String(dragFrom));
+  row.classList.add('drag-on');
+}
+function dragOverPhase(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  const row = e.target.closest('.phase-drag');
+  document.querySelectorAll('.phase-drag.drag-over').forEach(el=>el.classList.remove('drag-over'));
+  if(row) row.classList.add('drag-over');
+}
+function dropPhase(e){
+  e.preventDefault();
+  const row = e.target.closest('.phase-drag');
+  const to = row ? parseInt(row.dataset.idx) : -1;
+  if(dragFrom>=0 && to>=0 && dragFrom!==to) reorderPhases(dragFrom, to);
+  dragEndPhase();
+}
+function dragEndPhase(){
+  dragFrom = -1;
+  document.querySelectorAll('.phase-drag.drag-on,.phase-drag.drag-over').forEach(el=>el.classList.remove('drag-on','drag-over'));
+}
+function movePhase(idx, dir){
+  const to = idx + dir;
+  const len = getPhases().length;
+  if(to<0 || to>=len || idx<0 || idx>=len) return;
+  reorderPhases(idx, to);
+}
+function reorderPhases(from, to){
+  const cfg = ensureCfg();
+  const arr = cfg.phases;
+  if(from<0 || from>=arr.length || to<0 || to>=arr.length || from===to) return;
+  // 快照：重排前各实习生所处阶段名（按索引取）
+  const oldNames = arr.map(p=>p.name);
+  const internNames = state.interns.map(i=>oldNames[i.phase]);
+  // 重排 + 重编号（排序字段 1..n）
+  const [m] = arr.splice(from, 1);
+  arr.splice(to, 0, m);
+  arr.forEach((p,i)=>p.sort=i+1);
+  // 重映射：实习生仍处于同名阶段（位置不变，只调整列表顺序）
+  state.interns.forEach((i,ix)=>{
+    const ni = arr.findIndex(p=>p.name===internNames[ix]);
+    i.phase = ni>=0 ? ni : Math.max(0, arr.length-1);
+  });
+  render();
+  toast('阶段顺序已调整，排序号已按从小到大更新');
+}
+
+/* ================= 渲染：组织看板（HR 视角） ================= */
+function orgData(){
+  // 跨岗位合并：当前岗位用实时数据（增删改联动），另一岗位用示例数据
+  const cur = roleType;
+  const other = cur==='dev' ? 'product' : 'dev';
+  const curList = state.interns.map(i=>({...i, job:cur}));
+  const otherList = MODELS[other].seed().interns.map(i=>({...i, job:other}));
+  const all = [...curList, ...otherList];
+  const review = all.filter(i=>i.task.status==='review').length;
+  const need = all.filter(i=>i.support&&i.support.status==='pending').length;
+  // 阶段分布（按各自岗位的阶段索引）
+  const stageMap = {};
+  all.forEach(i=>{
+    const phName = perJobPhases(i.job)[Math.min(i.phase, perJobPhases(i.job).length-1)].name;
+    stageMap[phName] = (stageMap[phName]||0)+1;
+  });
+  // 导师分组
+  const mentors = {};
+  all.forEach(i=>{
+    if(!mentors[i.tl]) mentors[i.tl]={ name:i.tl, dev:0, prod:0, total:0, review:0, need:0 };
+    const m=mentors[i.tl];
+    i.job==='dev'?m.dev++:m.prod++;
+    m.total++;
+    if(i.task.status==='review') m.review++;
+    if(i.support&&i.support.status==='pending') m.need++;
+  });
+  const devs = all.filter(i=>i.job==='dev').length;
+  const pros = all.filter(i=>i.job==='product').length;
+  return { all, devs, pros, review, need, stageMap, mentors:Object.values(mentors), inWindow:0 };
+}
+function orgHTML(){
+  const o = orgData();
+  const dist = [
+    { k:'跟学/熟悉', v:o.stageMap['跟学理解']||0, c:'#2E6FBF' },
+    { k:'需求/跟随', v:(o.stageMap['需求分析']||0)+(o.stageMap['跟随式交付']||0), c:'#2BAE73' },
+    { k:'独立阶段', v:(o.stageMap['独立设计与验证']||0)+(o.stageMap['独立承担']||0), c:'#1F8A5B' },
+  ];
+  const distTotal = o.all.length;
+  return `
+  <section class="hero stagger">
+    <div>
+      <div class="hero-eyebrow">QINGHE / ORG WORKSPACE</div>
+      <h1>组织培养看板</h1>
+      <div class="sub">跨岗位统一视图，让培养投入可衡量、转正决策有依据。</div>
+    </div>
+    <div class="hero-actions"><span class="demo-tag" style="font-weight:600">双岗位数据合并 · 开发 ${o.devs} 人 · 产品 ${o.pros} 人</span></div>
+  </section>
+
+  <div class="org-cards">
+    <div class="org-card stagger"><div class="n">${o.all.length}</div><div class="t">在培实习生</div><div class="d">开发 ${o.devs} · 产品 ${o.pros}</div></div>
+    <div class="org-card orange stagger"><div class="n" style="color:var(--orange)">${o.review}</div><div class="t">待验收任务</div><div class="d">导师需及时验收</div></div>
+    <div class="org-card warn stagger"><div class="n">${o.need}</div><div class="t">需要支持</div><div class="d">卡点待协调</div></div>
+    <div class="org-card blue stagger"><div class="n">${o.inWindow}</div><div class="t">转正窗口内</div><div class="d">进入最后阶段的伙伴</div></div>
+  </div>
+
+  <div class="duo">
+    <div class="panel-card stagger">
+      <h3>${icon.overview}培养阶段分布</h3>
+      <div class="dist-bar">
+        ${dist.map(d=>`<i style="width:${d.v/distTotal*100}%;background:${d.c}"></i>`).join('')}
+      </div>
+      <div class="dist-legend">
+        ${dist.map(d=>`<span class="li"><i style="background:${d.c}"></i>${d.k} · ${d.v} 人</span>`).join('')}
+      </div>
+      <div class="skill-legend" style="margin-top:12px">培养进度以「入职阶段」对齐期望，不做横向排名</div>
+      <div style="margin-top:14px;padding-top:14px;border-top:1px dashed var(--line)">
+        <div class="org-row" style="box-shadow:none;border:none;padding:8px 2px">
+          <div class="ot"><b>岗位分布</b></div>
+          <div class="cnt" style="margin-left:auto"><span style="display:inline-flex;align-items:center;gap:12px"><span><b style="color:var(--blue)">${o.devs}</b> 开发</span><span><b style="color:var(--brand-deep)">${o.pros}</b> 产品</span></span></div>
+        </div>
+      </div>
+    </div>
+    <div class="panel-card stagger">
+      <h3>${icon.heart}带教导师一览</h3>
+      <div class="org-rows">
+        ${o.mentors.map(m=>`
+          <div class="org-row">
+            <div class="ot">
+              <b>${m.name}</b>
+              <span style="display:inline">带教 ${m.total} 人</span>
+              ${m.dev?`<span class="job dev">开发 ×${m.dev}</span>`:''}
+              ${m.prod?`<span class="job product">产品 ×${m.prod}</span>`:''}
+            </div>
+            <div class="cnt blue"><b>${m.review}</b> 待验收</div>
+            <div class="cnt amber"><b>${m.need}</b> 需支持</div>
+          </div>`).join('')}
+      </div>
+      <div style="margin-top:12px;font-size:11.5px;color:var(--ink-3)">带教负载均衡：建议每位导师同时在带 ≤ 3 人</div>
+    </div>
+  </div>
+
+  <div class="panel-card" style="margin-top:20px">
+    <h3>${icon.prepare}转正流程监控</h3>
+    <div class="steps" style="margin:4px 0 6px">
+      ${[['材料准备','成长档案+成果'],['能力自评','对照维度自评'],['导师评估','带教评价'],['评审会','答辩评议'],['结果归档','HR 确认']].map((s,si)=>`
+        <div class="step ${si<1?'done':''}"><div class="dot">${si<1?'✓':si+1}</div><b>${s[0]}</b><span>${s[1]}</span></div>`).join('')}
+    </div>
+    <div class="ready-panel" style="margin-top:8px">
+      <div class="rk">📊</div>
+      <div>
+        <h3>当前 0 位伙伴进入转正窗口</h3>
+        <p>伙伴进入最后培养阶段后自动进入本流程；每个节点的材料与评分均沉淀自过程数据，全程留痕。</p>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ================= 渲染入口 ================= */
+function render(){
+  clampPhase();
+  crumb();
+  renderFooter();
+  const role = roleView==='intern';
+  const hr = roleView==='hr';
+  // 导师视角标签随岗位模式联动：开发=技术导师，产品=产品导师
+  const tlLabel = isDev() ? '技术导师 · 技术视角' : '产品导师 · 产品视角';
+  $('#vsLabel').textContent = role ? '实习生视角' : hr ? '组织管理 · HR 视角' : tlLabel;
+  $('.avatar').textContent = hr ? 'HR' : role ? '实' : (isDev() ? '技' : '产');
+  // 同步下拉菜单第一项（带教导师）文案
+  const tlOpt = document.querySelector('.vs-opt[data-view="tl"]');
+  if(tlOpt){
+    const main = tlOpt.querySelector('.vo-main');
+    const sub = tlOpt.querySelector('.sub');
+    if(main) main.textContent = tlLabel;
+    if(sub) sub.textContent = isDev() ? '管理名下开发实习生培养' : '管理名下产品实习生培养';
+  }
+  let html='';
+  if(hr){
+    if(curView==='manage'){ html = manageHTML(); }
+    else if(curView==='prepare'){ html = prepareHTML(); }
+    else if(curView==='config'){ html = configHTML(); }
+    else { curView='org'; html = orgHTML(); }
+  } else if(role){
+    curView = curView==='overview' ? 'profile' : curView;
+    if(curView==='tasks'||curView==='support'||curView==='prepare'){
+      html = curView==='tasks'?taskListHTML() : curView==='support'?supportHTML() : prepareHTML();
+    } else { html = profileHTML(); }
+  } else {
+    html = curView==='overview'?renderOverview()
+      : curView==='tasks'?taskListHTML()
+      : curView==='profile'?profileHTML()
+      : curView==='support'?supportHTML()
+      : curView==='review'?reviewHTML()
+      : curView==='org'?orgHTML()
+      : curView==='manage'?manageHTML()
+      : prepareHTML();
+  }
+  $('#content').innerHTML = html;
+  renderNav();
+  saveState();   // 数据变更后统一持久化，升级/刷新不丢数据
+}
+
+/* ================= 交互：任务 ================= */
+function toReview(id){
+  const i=state.interns.find(x=>x.id===id);
+  i.task.status='review';
+  render(); toast(`「${i.task.title}」已提交验收`);
+}
+function openSubmitWork(id){
+  const i=state.interns.find(x=>x.id===id);
+  openModal(`
+    <h3>提交成果</h3>
+    <div class="msub">提交产出物与说明，带教导师将进行验收</div>
+    <div class="plain-row" style="box-shadow:none;border:1px solid var(--line);margin-bottom:14px">
+      <div class="ti-ava">${i.name[0]}</div>
+      <div class="pm"><b>${i.task.title}</b><span>${i.name} · ${roleLabel(i.role)}</span></div>
+    </div>
+    <div class="field"><label>成果说明 <span class="req">*</span></label>
+      <textarea id="swDesc" placeholder="描述你完成了什么、产出了什么、有哪些证据支撑…"></textarea>
+    </div>
+    <div class="field"><label>产出物链接</label><input id="swLink" placeholder="文档 / 原型 / 代码库链接（选填）"></div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="doSubmit('${i.id}')">提交验收</button>
+    </div>`);
+}
+function doSubmit(id){
+  const i=state.interns.find(x=>x.id===id);
+  i.task.status='review';
+  closeModal(); render();
+  toast(`成果已提交，等待导师验收：${i.task.title}`);
+}
+function reviewTask(id){
+  const i=state.interns.find(x=>x.id===id);
+  openModal(`
+    <h3>验收成长任务</h3>
+    <div class="msub">验收不是打分，是确认成长证据是否到位</div>
+    <div class="plain-row" style="box-shadow:none;border:1px solid var(--line);margin-bottom:14px">
+      <div class="ti-ava">${i.name[0]}</div>
+      <div class="pm"><b>${i.task.title}</b><span>${i.name} · ${roleLabel(i.role)}</span></div>
+    </div>
+    <div class="field"><label>验收结论</label>
+      <textarea placeholder="记录验收依据…">产出完整，证据充分，可进入下一环节。</textarea>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">再等等</button>
+      <button class="btn-primary sm" onclick="doReview('${i.id}')">确认验收</button>
+    </div>`);
+}
+function doReview(id){
+  const i=state.interns.find(x=>x.id===id);
+  i.task.status='done';
+  i.progress={ text: isDev() ? '独立讲清业务缺陷链路' : '访谈洞察输出完整，数据支撑充分', star:true };
+  closeModal(); render();
+  toast(`已验收：${i.task.title}`);
+}
+
+/* ================= 交互：阶段自评（实习生） ================= */
+function openSelfReview(){
+  const i=state.interns[internViewIdx];
+  let rateHTML = getSkillDims().map(d=>`
+    <div class="rate-row">
+      <div class="rl">${d.name}</div>
+      <div class="rs">
+        ${[1,2,3,4,5].map(v=>`<button class="${v===3?'sel':''}" data-k="${d.key}" data-v="${v}" onclick="pickRate(this)">${v}</button>`).join('')}
+      </div>
+    </div>`).join('');
+  openModal(`
+    <h3>阶段自评（${getPhases()[Math.min(i.phase,getPhases().length-1)].name}）</h3>
+    <div class="msub">对照能力维度给自己打分，导师将结合自评进行确认</div>
+    ${rateHTML}
+    <div class="field" style="margin-top:14px"><label>自评说明</label><textarea id="srNote" placeholder="举一个具体例子说明你的能力证据…"></textarea></div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="doSelfReview('${i.id}')">提交自评</button>
+    </div>`);
+}
+function pickRate(btn){
+  btn.closest('.rs').querySelectorAll('button').forEach(b=>b.classList.remove('sel'));
+  btn.classList.add('sel');
+}
+function doSelfReview(id){
+  closeModal(); render();
+  toast('阶段自评已提交，等待导师确认');
+}
+
+/* ================= 交互：支持 ================= */
+function resolveSupport(id){
+  const i=state.interns.find(x=>x.id===id);
+  i.support.status='resolved';
+  render(); toast(`已协调：${i.name} 的支持请求`);
+}
+
+/* ================= 交互：新建任务 ================= */
+function openNewTask(){
+  openModal(`
+    <h3>新建成长任务</h3>
+    <div class="msub">任务应可验收、可观察，并服务于本周成长目标</div>
+    <div class="field"><label>任务标题 <span class="req">*</span></label><input id="ntTitle" placeholder="例如：${isDev()?'会话状态流转缺陷修复与回归':'AI 客服降级场景用户访谈与洞察整理'}"></div>
+    <div class="field"><label>指派伙伴 <span class="req">*</span></label>
+      <select id="ntWho">${state.interns.map(i=>`<option value="${i.id}">${i.name} · ${roleLabel(i.role)}（第${i.week}周）</option>`).join('')}</select>
+    </div>
+    <div class="field"><label>任务说明</label><textarea id="ntDesc" placeholder="说明验收标准、期望产出…"></textarea></div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="createTask()">创建任务</button>
+    </div>`);
+  setTimeout(()=>$('#ntTitle').focus(),80);
+}
+function createTask(){
+  const title=$('#ntTitle').value.trim();
+  if(!title){ toast('请填写任务标题'); return; }
+  const who=$('#ntWho').value;
+  const i=state.interns.find(x=>x.id===who);
+  i.task={ title, status:'doing' };
+  closeModal(); render();
+  toast(`成长任务已创建：${title}`);
+}
+
+/* ================= 岗位模式切换 ================= */
+document.querySelectorAll('#seg .seg-btn').forEach(b=>{
+  b.addEventListener('click',()=>{ switchJob(b.dataset.role); });
+});
+
+/* ================= 视角切换 ================= */
+$('#vsBtn').addEventListener('click',e=>{ e.stopPropagation(); $('#vsMenu').classList.toggle('open'); });
+document.addEventListener('click',e=>{ if(!e.target.closest('.view-switch')) $('#vsMenu').classList.remove('open'); });
+document.querySelectorAll('.vs-opt').forEach(b=>{
+  b.addEventListener('click',()=>{
+    roleView = b.dataset.view;
+    $('#vsMenu').classList.remove('open');
+    if(roleView==='intern'){ curView='profile'; toast('已切换为实习生视角（演示）'); }
+    else if(roleView==='hr'){ curView='org'; toast('已切换为组织管理 · HR 视角'); }
+    else { curView='overview'; toast('已切换为带教导师 · TL 视角'); }
+    render();
+  });
+});
+
+/* ================= 数据备份：导出 / 导入 ================= */
+function exportData(){
+  saveState();
+  const raw = localStorage.getItem(STORE_KEY) || '{}';
+  const blob = new Blob([raw], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'qinghe-data-backup-' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  toast('数据已导出为备份文件，请妥善保存');
+}
+function importData(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const d = JSON.parse(e.target.result);
+      if(!d || typeof d !== 'object' || !d.jobs || typeof d.jobs !== 'object'){
+        throw new Error('数据格式不正确');
+      }
+      // 校验通过后写入并重载（缺失岗位在加载时自动回落默认模型）
+      localStorage.setItem(STORE_KEY, JSON.stringify(d));
+      toast('备份导入成功，正在恢复数据…');
+      setTimeout(()=>location.reload(), 600);
+    }catch(err){
+      toast('导入失败：文件格式不正确');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ================= 重置 ================= */
+$('#resetBtn').addEventListener('click',()=>{
+  try{ localStorage.removeItem(STORE_KEY); }catch(e){}
+  state=MODELS[roleType].seed(); curFilter='all'; taskTab='all'; internViewIdx=0;
+  customByJob={dev:null,product:null}; checkVer='v2';
+  render(); toast('本地数据已清除，已恢复默认示例数据');
+});
+$('#fab').addEventListener('click',()=>{ openNewTask(); });
+
+/* ================= 启动 ================= */
+(function init(){
+  const saved = loadState();
+  if(saved){
+    roleType = saved.roleType;
+    roleView = saved.roleView;
+    curView = saved.curView;
+    checkVer = saved.checkVer;
+    if(roleView==='intern' && curView==='overview') curView='profile';
+    if(roleView==='hr' && !['org','prepare','manage','config'].includes(curView)) curView='org';
+    const slot = saved.jobs[roleType];
+    if(slot){
+      state = { interns: slot.interns };
+      customByJob[roleType] = slot.custom;
+    } else {
+      state = MODELS[roleType].seed();
+    }
+  }
+  render();
+})();
+</script>
+</body>
+</html>
