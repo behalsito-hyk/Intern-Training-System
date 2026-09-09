@@ -1631,7 +1631,7 @@ function openInternModal(idx){
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="field"><label>入职时间 <span class="req">*</span></label><input id="imJoinDate" type="date" value="${isEdit?(i.joinDate||''):'2026-09-07'}" onchange="autoCalcWeek()"></div>
-      <div class="field"><label>入职周数 <span class="req">*</span>（自动计算 · 手动修改后不再被覆盖）</label><input id="imWeek" type="number" min="1" max="12" value="${isEdit?i.week:1}" oninput="weekTouched=true"></div>
+      <div class="field"><label>入职周数 <span class="req">*</span>（自动计算 · 手动修改后不再被覆盖）</label><input id="imWeek" type="number" min="1" max="52" value="${isEdit?i.week:1}" oninput="weekTouched=true"></div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
       <div class="field"><label>培养阶段</label>
@@ -1667,7 +1667,7 @@ function autoCalcWeek(){
 function saveIntern(idx){
   const name=$('#imName').value.trim();
   const role=$('#imRole').value;
-  const week=Math.min(12,Math.max(1,parseInt($('#imWeek').value)||1));
+  const week=Math.min(52,Math.max(1,parseInt($('#imWeek').value)||1));
   const phase=parseInt($('#imPhase').value)||0;
   const joinDate=$('#imJoinDate').value||'';
   const gradDate=$('#imGradDate').value||'';
@@ -2267,7 +2267,7 @@ function refreshTaskWeeks(){
   if(!i) return;
   const cur = Math.max(1, i.week);
   const opts = [];
-  for(let w=cur; w<=12; w++){
+  for(let w=cur; w<=52; w++){
     opts.push(`<option value="${w}" ${w===cur?'selected':''}>${w===cur?`第 ${w} 周（当前周）`:`第 ${w} 周`}</option>`);
   }
   sel.innerHTML = opts.join('');
