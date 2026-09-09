@@ -988,6 +988,32 @@ function getJobOptions(){
   try{ const v = JSON.parse(localStorage.getItem('qinghe_jobs')||'null'); return Array.isArray(v)&&v.length ? v : JOB_DEF; }catch(e){ return JOB_DEF; }
 }
 function saveJobOptions(opts){ localStorage.setItem('qinghe_jobs', JSON.stringify(opts)); }
+/* ================= 账号管理（HR） =================
+   动态账号存 qinghe_accounts；新建实习生自动开号（姓名+5位随机数字，不重复） */
+function getAccounts(){
+  try{ const v = JSON.parse(localStorage.getItem('qinghe_accounts')||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; }
+}
+function saveAccounts(list){ localStorage.setItem('qinghe_accounts', JSON.stringify(list)); }
+function genAccountUid(name){
+  const list = getAccounts();
+  const exists = new Set(list.map(a=>a.uid));
+  let uid;
+  do {
+    const num = String(Math.floor(Math.random()*90000)+10000);   // 10000-99999
+    uid = name + num;
+  } while(exists.has(uid));
+  return uid;
+}
+function openAccountForIntern(intern){
+  const uid = genAccountUid(intern.name);
+  const list = getAccounts();
+  list.push({ uid, name: intern.name, role:'intern', job: intern.role || '产品', status:'active', auto:true, internId: intern.id, created: new Date().toISOString().slice(0,10) });
+  saveAccounts(list);
+  return uid;
+}
+function findAccount(uid){
+  return getAccounts().find(a=>a.uid===uid);
+}
 /* 密码管理：自定义密码存 localStorage，未修改时用默认 123456 */
 function getPw(uid){
   try{ const pws = JSON.parse(localStorage.getItem('qinghe_pw')||'{}'); return pws[uid] || '123456'; }catch(e){ return '123456'; }
@@ -1008,23 +1034,31 @@ function doLogin(){
   const uid = $('#lgUser').value.trim().toLowerCase();
   const pw = $('#lgPass').value;
   const a = ACCOUNTS[uid];
-  if(!a || getPw(uid)!==pw){
-    $('#lgErr').textContent = uid ? '账号或密码错误（默认密码：123456）' : '请输入账号';
+  if(a && getPw(uid)===pw){ loginSuccess(uid); return; }
+  // 动态账号（实习生自动开通）
+  const dyn = findAccount(uid);
+  if(dyn && getPw(uid)===pw){
+    if(dyn.status==='disabled'){ $('#lgErr').textContent='该账号已停用，请联系管理员'; return; }
+    loginSuccess(uid, dyn);
     return;
   }
-  loginSuccess(uid);
+  $('#lgErr').textContent = uid ? '账号或密码错误（默认密码：123456）' : '请输入账号';
 }
-function quickLogin(uid){ loginSuccess(uid); }
-function loginSuccess(uid){
-  const a = ACCOUNTS[uid];
-  loginUser = { uid, name:a.name, label:a.label, job:a.job, initial:a.initial, email:'', phone:'' };
+function quickLogin(uid){
+  const dyn = findAccount(uid);
+  loginSuccess(uid, dyn || undefined);
+}
+function loginSuccess(uid, dyn){
+  const a = dyn || ACCOUNTS[uid];
+  if(!a) return;
+  loginUser = { uid, name:a.name, label: dyn? (dyn.role==='intern'?'实习生':'账号用户') : a.label, job: a.job, initial:a.name[0], email:'', phone:'' };
   saveUser(loginUser);
-  roleView = a.role;
-  curView = a.role==='intern' ? 'profile' : a.role==='hr' ? 'org' : 'overview';
+  roleView = dyn ? 'intern' : a.role;
+  curView = dyn ? 'profile' : (a.role==='hr' ? 'org' : 'overview');
   $('#loginMask').style.display = 'none';
   $('#lgUser').value=''; $('#lgPass').value=''; $('#lgErr').textContent='';
   render();
-  toast(`欢迎回来，${a.name}`);
+  toast(`欢迎回来，${loginUser.name}`);
 }
 function logout(){
   localStorage.removeItem('qinghe_user');
@@ -1309,6 +1343,7 @@ const MENUS = {
     { id:'profile',  label:'成长档案', ic:icon.growth },
     { id:'prepare',  label:'转正流程', ic:icon.prepare, badge:()=>orgData().inWindow },
     { id:'manage',   label:'实习生管理', ic:icon.settings },
+    { id:'accounts', label:'账号管理', ic:icon.tasks },
     { id:'config',   label:'模型配置', ic:icon.prepare },
   ],
 };
@@ -1321,6 +1356,7 @@ const TITLES = {
   prepare:['转正准备','成长工作台'],
   org:['组织看板','组织管理'],
   manage:['实习生管理','成长工作台'],
+  accounts:['账号管理','组织管理'],
   config:['模型配置','组织管理'],
 };
 function renderNav(){
@@ -1343,7 +1379,7 @@ function switchView(v){
 }
 function crumb(){
   if(roleView==='hr'){
-    const cur = curView==='prepare' ? '转正流程' : curView==='manage' ? '实习生管理' : curView==='config' ? '模型配置' : curView==='profile' ? '成长档案' : '组织看板';
+    const cur = curView==='prepare' ? '转正流程' : curView==='manage' ? '实习生管理' : curView==='config' ? '模型配置' : curView==='profile' ? '成长档案' : curView==='accounts' ? '账号管理' : '组织看板';
     $('#crumb').innerHTML=`数智化服务平台 <span class="sep">/</span> <b>组织管理</b> <span class="sep">/</span> <span class="cur">${cur}</span>`;
     return;
   }
@@ -1764,6 +1800,105 @@ function switchVer(v){
   toast(v==='v2' ? '已切换至 V2 · 三维度必要条件考核' : '已切换至 V1 · 维度权重评估（保留历史版本）');
 }
 
+/* ================= 账号管理（HR） ================= */
+function accountsHTML(){
+  const list = getAccounts();
+  const roleLabelOf = r => r==='intern' ? '实习生' : r==='hr' ? 'HR 管理员' : '带教导师';
+  return `
+  <section class="hero stagger">
+    <div>
+      <div class="hero-eyebrow">ACCOUNT MANAGEMENT</div>
+      <h1>账号管理</h1>
+      <div class="sub">共 ${list.length} 个账号 · 新建实习生自动开通（姓名 + 5 位随机数字，不重复）· 默认密码 123456</div>
+    </div>
+    <div class="hero-actions"><button class="btn-primary" onclick="openAddAccount()">＋ 新增账号</button></div>
+  </section>
+  <div class="org-rows">
+    ${list.length===0?`<div class="mg-empty">暂无账号，新增实习生或手动创建账号</div>`:
+      list.map((a,ai)=>`
+      <div class="org-row">
+        <div class="p-avatar" style="width:38px;height:38px;border-radius:12px;font-size:14px">${a.name[0]}</div>
+        <div class="ot">
+          <b>${a.name} ${a.auto?'<span class="job" style="font-size:10px">自动</span>':''}</b>
+          <span>账号 ${a.uid} · ${roleLabelOf(a.role)} · ${a.job} · 创建 ${a.created||'—'}</span>
+        </div>
+        <span class="${a.status==='disabled'?'tag doing':'tag done'}" style="flex-shrink:0">${a.status==='disabled'?'已停用':'正常'}</span>
+        <div class="mg-ops">
+          <button class="mini-btn" onclick="resetAccountPw('${a.uid}')">重置密码</button>
+          <button class="mini-btn" onclick="toggleAccount('${a.uid}')">${a.status==='disabled'?'启用':'停用'}</button>
+          <button class="mini-btn danger" onclick="confirmDelAccount('${a.uid}')">删除</button>
+        </div>
+      </div>`).join('')}
+  </div>`;
+}
+function openAddAccount(){
+  openModal(`
+    <h3>新增账号</h3>
+    <div class="msub">账号名 = 姓名 + 5 位随机数字（自动生成，不重复）· 默认密码 123456</div>
+    <div class="field"><label>姓名 <span class="req">*</span></label><input id="aaName" placeholder="账号持有人姓名"></div>
+    <div class="field"><label>角色</label>
+      <select id="aaRole">
+        <option value="intern">实习生</option>
+        <option value="tl">带教导师</option>
+        <option value="hr">HR 管理员</option>
+      </select>
+    </div>
+    <div class="field"><label>岗位</label>
+      <select id="aaJob">${getJobOptions().map(j=>`<option>${j}</option>`).join('')}</select>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="addAccount()">创建账号</button>
+    </div>`);
+}
+function addAccount(){
+  const name = $('#aaName').value.trim();
+  if(!name){ toast('请填写姓名'); return; }
+  const role = $('#aaRole').value;
+  const job = $('#aaJob').value;
+  const uid = genAccountUid(name);
+  const list = getAccounts();
+  list.push({ uid, name, role, job, status:'active', auto:false, created:new Date().toISOString().slice(0,10) });
+  saveAccounts(list);
+  closeModal(); render();
+  toast(`账号已创建：${uid}（密码 123456）`);
+}
+function toggleAccount(uid){
+  const list = getAccounts();
+  const a = list.find(x=>x.uid===uid);
+  if(!a) return;
+  a.status = a.status==='disabled' ? 'active' : 'disabled';
+  saveAccounts(list);
+  render(); toast(a.status==='disabled' ? `账号 ${uid} 已停用` : `账号 ${uid} 已启用`);
+}
+function resetAccountPw(uid){
+  resetPw(uid);
+  toast(`账号 ${uid} 密码已重置为 123456`);
+}
+function confirmDelAccount(uid){
+  const a = findAccount(uid);
+  if(!a) return;
+  openModal(`
+    <h3>删除账号</h3>
+    <div class="msub">删除「${uid}（${a.name}）」后该账号将无法登录</div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" style="background:#B3543F" onclick="delAccount('${uid}')">确认删除</button>
+    </div>`);
+}
+function delAccount(uid){
+  let list = getAccounts();
+  list = list.filter(a=>a.uid!==uid);
+  saveAccounts(list);
+  closeModal(); render();
+  toast(`账号 ${uid} 已删除`);
+}
+/* 删除实习生时同步删除其自动账号 */
+function deleteAccountByIntern(internId){
+  let list = getAccounts();
+  const hit = list.filter(a=>a.internId===internId);
+  if(hit.length){ list = list.filter(a=>a.internId!==internId); saveAccounts(list); }
+}
 /* ================= 实习生管理（添加/修改/删除） ================= */
 function defaultIntern(name, roleName){
   const wk = 1;
@@ -1877,7 +2012,9 @@ function saveIntern(idx){
     ni.week=week; ni.phase=phase; ni.joinDate=joinDate||'2026-09-07'; ni.gradDate=gradDate; ni.school=school; ni.degree=degree; ni.tl=tl;
     ni.join = ni.joinDate.slice(5).replace('-','.');
     state.interns.push(ni);
-    toast(`已添加实习生：${name}`);
+    // 自动开通账号：姓名 + 5 位随机数字（不重复）
+    const accUid = openAccountForIntern(ni);
+    toast(`已添加实习生：${name}，账号 ${accUid}（默认密码 123456）`);
   }
   closeModal(); render();
 }
@@ -1898,6 +2035,7 @@ function confirmDelete(idx){
 function doDelete(idx){
   const i=state.interns[idx];
   state.interns.splice(idx,1);
+  deleteAccountByIntern(i.id);   // 同步删除该实习生的自动账号
   if(internViewIdx>=state.interns.length) internViewIdx=Math.max(0,state.interns.length-1);
   closeModal(); render();
   toast(`已删除实习生：${i.name}`);
@@ -2413,6 +2551,7 @@ function render(){
     else if(curView==='prepare'){ html = prepareHTML(); }
     else if(curView==='config'){ html = configHTML(); }
     else if(curView==='profile'){ html = profileHTML(); }
+    else if(curView==='accounts'){ html = accountsHTML(); }
     else { curView='org'; html = orgHTML(); }
   } else if(role){
     curView = curView==='overview' ? 'profile' : curView;
@@ -2639,7 +2778,8 @@ $('#fab').addEventListener('click',()=>{ openNewTask(); });
   const savedUser = loadUser();
   if(savedUser){
     loginUser = savedUser;
-    roleView = savedUser.uid==='intern' ? 'intern' : savedUser.uid==='hr' ? 'hr' : 'tl';
+    const dyn = findAccount(savedUser.uid);
+    roleView = dyn ? 'intern' : (savedUser.uid==='intern' ? 'intern' : savedUser.uid==='hr' ? 'hr' : 'tl');
     $('#loginMask').style.display = 'none';
   } else {
     roleView = 'tl';
@@ -2650,7 +2790,7 @@ $('#fab').addEventListener('click',()=>{ openNewTask(); });
     curView = saved.curView;
     checkVer = saved.checkVer;
     if(roleView==='intern' && curView==='overview') curView='profile';
-    if(roleView==='hr' && !['org','prepare','manage','config','profile'].includes(curView)) curView='org';
+    if(roleView==='hr' && !['org','prepare','manage','config','profile','accounts'].includes(curView)) curView='org';
     const slot = saved.jobs[roleType];
     if(slot){
       state = { interns: slot.interns };
