@@ -1039,6 +1039,18 @@ function syncAccountByIntern(intern){
 function findAccount(uid){
   return getAccounts().find(a=>a.uid===uid);
 }
+/* 当前登录实习生索引：动态账号按 internId 关联；演示 intern 按姓名匹配 */
+function getMyInternIdx(){
+  const u = loginUser || loadUser();
+  if(!u) return 0;
+  const acc = findAccount(u.uid);
+  if(acc && acc.internId){
+    const idx = state.interns.findIndex(i=>i.id===acc.internId);
+    if(idx>=0) return idx;
+  }
+  const byName = state.interns.findIndex(i=>i.name===u.name);
+  return byName>=0 ? byName : 0;
+}
 /* 密码管理：自定义密码存 localStorage，未修改时用默认 123456 */
 function getPw(uid){
   try{ const pws = JSON.parse(localStorage.getItem('qinghe_pw')||'{}'); return pws[uid] || '123456'; }catch(e){ return '123456'; }
@@ -1080,6 +1092,7 @@ function loginSuccess(uid, dyn){
   saveUser(loginUser);
   roleView = dyn ? 'intern' : a.role;
   curView = dyn ? 'profile' : (a.role==='hr' ? 'org' : 'overview');
+  if(roleView==='intern'){ internViewIdx = getMyInternIdx(); }   // 实习生登录：锁定本人档案
   $('#loginMask').style.display = 'none';
   $('#lgUser').value=''; $('#lgPass').value=''; $('#lgErr').textContent='';
   render();
@@ -1361,7 +1374,7 @@ const MENUS = {
   ],
   intern:[
     { id:'profile',  label:'我的成长', ic:icon.growth },
-    { id:'tasks',    label:'我的任务', ic:icon.tasks, badge:()=>state.interns.filter(i=>i.task.status==='review').length },
+    { id:'tasks',    label:'我的任务', ic:icon.tasks, badge:()=>{ const me=state.interns[getMyInternIdx()]; return me&&me.task.status==='review'?1:0; } },
     { id:'support',  label:'我的沟通', ic:icon.chat },
     { id:'prepare',  label:'转正申请', ic:icon.prepare },
   ],
@@ -1507,9 +1520,15 @@ function renderOverview(){
 /* ================= 渲染：成长任务 ================= */
 function taskListHTML(){
   const all=[];
-  state.interns.forEach(i=>{
-    all.push({...i.task, intern:i.name, ava:i.name[0], id:i.id});
-  });
+  if(roleView==='intern'){
+    // 实习生只看到自己的任务
+    const me = state.interns[getMyInternIdx()];
+    if(me) all.push({...me.task, intern:me.name, ava:me.name[0], id:me.id});
+  } else {
+    state.interns.forEach(i=>{
+      all.push({...i.task, intern:i.name, ava:i.name[0], id:i.id});
+    });
+  }
   const list = all.filter(t=>taskTab==='all'||t.status===taskTab);
   const isIntern = roleView==='intern';
   return `
@@ -2594,6 +2613,7 @@ function render(){
     else if(curView==='accounts'){ html = accountsHTML(); }
     else { curView='org'; html = orgHTML(); }
   } else if(role){
+    internViewIdx = getMyInternIdx();   // 实习生视角：始终锁定登录账号对应的本人档案
     curView = curView==='overview' ? 'profile' : curView;
     if(curView==='tasks'||curView==='support'||curView==='prepare'){
       html = curView==='tasks'?taskListHTML() : curView==='support'?supportHTML() : prepareHTML();
