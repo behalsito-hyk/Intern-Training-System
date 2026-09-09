@@ -973,9 +973,9 @@ let checkVer = 'v2';   // 转正考核版本：v1 维度权重 / v2 三维度必
 /* ================= 账号体系（登录 / 个人信息） =================
    演示账号：tl / hr / intern，密码统一 123456；登录态存 localStorage */
 const ACCOUNTS = {
-  tl:     { pw:'123456', role:'tl',     name:'产品导师 · 赵清和', label:'带教导师',   job:'TL',  initial:'赵' },
-  hr:     { pw:'123456', role:'hr',     name:'HR 管理员',         label:'组织管理员', job:'HR',  initial:'HR' },
-  intern: { pw:'123456', role:'intern', name:'许诺',              label:'实习生',     job:'产品', initial:'许' },
+  tl:     { pw:'123456', role:'tl',     name:'产品导师 · 赵清和', label:'带教导师',   job:'TL',  initial:'赵', empNo:'' },
+  hr:     { pw:'123456', role:'hr',     name:'HR 管理员',         label:'组织管理员', job:'HR',  initial:'HR', empNo:'' },
+  intern: { pw:'123456', role:'intern', name:'许诺',              label:'实习生',     job:'产品', initial:'许', empNo:'E1003' },
 };
 let loginUser = loadUser();   // 当前登录用户（启动时读取，未登录为 null）
 function loadUser(){
@@ -1076,7 +1076,7 @@ function quickLogin(uid){
 function loginSuccess(uid, dyn){
   const a = dyn || ACCOUNTS[uid];
   if(!a) return;
-  loginUser = { uid, name:a.name, label: dyn? (dyn.role==='intern'?'实习生':'账号用户') : a.label, job: a.job, initial:a.name[0], email:'', phone:'' };
+  loginUser = { uid, name:a.name, label: dyn? (dyn.role==='intern'?'实习生':'账号用户') : a.label, job: a.job, initial:a.name[0], empNo: dyn? (dyn.empNo||'') : (a.empNo||''), email:'', phone:'' };
   saveUser(loginUser);
   roleView = dyn ? 'intern' : a.role;
   curView = dyn ? 'profile' : (a.role==='hr' ? 'org' : 'overview');
@@ -1102,6 +1102,7 @@ function openProfile(){
       </div>
     </div>
     <div class="field"><label>用户名（修改后头像与个人信息同步更新）</label><input id="pfName" value="${u.name}"></div>
+    <div class="field"><label>工号（由实习生档案 / 账号管理维护）</label><input id="pfEmpNo" value="${u.empNo||''}" disabled style="background:var(--surface-2);color:var(--ink-2)"></div>
     <div class="field"><label>岗位</label>
       <select id="pfJob">${getJobOptions().map(j=>`<option ${u.job===j?'selected':''}>${j}</option>`).join('')}</select>
     </div>
@@ -1835,7 +1836,7 @@ function accountsHTML(){
     <div>
       <div class="hero-eyebrow">ACCOUNT MANAGEMENT</div>
       <h1>账号管理</h1>
-      <div class="sub">共 ${list.length} 个账号 · 新建实习生自动开通（姓名 + 5 位随机数字，不重复）· 默认密码 123456</div>
+      <div class="sub">共 ${list.length} 个账号 · 新建实习生自动开通（姓名 + 工号，不重复）· 默认密码 123456</div>
     </div>
     <div class="hero-actions"><button class="btn-primary" onclick="openAddAccount()">＋ 新增账号</button></div>
   </section>
