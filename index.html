@@ -973,15 +973,21 @@ let checkVer = 'v2';   // 转正考核版本：v1 维度权重 / v2 三维度必
 /* ================= 账号体系（登录 / 个人信息） =================
    演示账号：tl / hr / intern，密码统一 123456；登录态存 localStorage */
 const ACCOUNTS = {
-  tl:     { pw:'123456', role:'tl',     name:'产品导师 · 赵清和', label:'带教导师',   job:'AI 产品团队', initial:'赵' },
-  hr:     { pw:'123456', role:'hr',     name:'HR 管理员',         label:'组织管理员', job:'人力资源部',   initial:'HR' },
-  intern: { pw:'123456', role:'intern', name:'许诺',              label:'实习生',     job:'AI 产品',      initial:'许' },
+  tl:     { pw:'123456', role:'tl',     name:'产品导师 · 赵清和', label:'带教导师',   job:'TL',  initial:'赵' },
+  hr:     { pw:'123456', role:'hr',     name:'HR 管理员',         label:'组织管理员', job:'HR',  initial:'HR' },
+  intern: { pw:'123456', role:'intern', name:'许诺',              label:'实习生',     job:'产品', initial:'许' },
 };
 let loginUser = loadUser();   // 当前登录用户（启动时读取，未登录为 null）
 function loadUser(){
   try{ return JSON.parse(localStorage.getItem('qinghe_user')||'null'); }catch(e){ return null; }
 }
 function saveUser(u){ localStorage.setItem('qinghe_user', JSON.stringify(u)); }
+/* 岗位选项（全局可配置）：个人信息岗位下拉的候选值 */
+const JOB_DEF = ['产品','开发','TL','HR'];
+function getJobOptions(){
+  try{ const v = JSON.parse(localStorage.getItem('qinghe_jobs')||'null'); return Array.isArray(v)&&v.length ? v : JOB_DEF; }catch(e){ return JOB_DEF; }
+}
+function saveJobOptions(opts){ localStorage.setItem('qinghe_jobs', JSON.stringify(opts)); }
 /* 密码管理：自定义密码存 localStorage，未修改时用默认 123456 */
 function getPw(uid){
   try{ const pws = JSON.parse(localStorage.getItem('qinghe_pw')||'{}'); return pws[uid] || '123456'; }catch(e){ return '123456'; }
@@ -1037,6 +1043,9 @@ function openProfile(){
       </div>
     </div>
     <div class="field"><label>用户名（修改后头像与个人信息同步更新）</label><input id="pfName" value="${u.name}"></div>
+    <div class="field"><label>岗位</label>
+      <select id="pfJob">${getJobOptions().map(j=>`<option ${u.job===j?'selected':''}>${j}</option>`).join('')}</select>
+    </div>
     <div class="field"><label>邮箱</label><input id="pfEmail" value="${u.email||''}" placeholder="工作邮箱"></div>
     <div class="field"><label>手机</label><input id="pfPhone" value="${u.phone||''}" placeholder="联系电话"></div>
     <div class="modal-ft">
@@ -1094,6 +1103,7 @@ function doResetPw(){
 function saveProfile(){
   const u = loginUser || loadUser() || ACCOUNTS.tl;
   u.name = $('#pfName').value.trim() || u.name;
+  u.job = $('#pfJob') ? $('#pfJob').value : u.job;
   u.email = $('#pfEmail').value.trim();
   u.phone = $('#pfPhone').value.trim();
   u.initial = u.name[0];
@@ -1827,7 +1837,7 @@ function openInternModal(idx){
       </div>
     </div>
     <div class="field"><label>带教导师 <span class="req">*</span></label><input id="imTl" value="${isEdit?i.tl:''}" placeholder="带教导师姓名"></div>
-    ${isEdit?`<div class="field"><label>本周成长目标 <span class="req">*</span></label><textarea id="imGoal" placeholder="本周可验收的一句话目标">${i.goal}</textarea></div>`:''}
+    <div class="msub" style="margin-top:-8px">本周成长目标在「培养总览」中由导师制定，不在此处维护</div>
     <div class="modal-ft">
       <button class="btn-ghost" onclick="closeModal()">取消</button>
       <button class="btn-primary sm" onclick="saveIntern(${idx})">${isEdit?'保存修改':'添加'}</button>
@@ -1855,18 +1865,16 @@ function saveIntern(idx){
   const school=$('#imSchool').value.trim();
   const degree=$('#imDegree').value;
   const tl=$('#imTl').value.trim();
-  const goal = $('#imGoal') ? $('#imGoal').value.trim() : '';   // 添加时无该字段，可空
   if(!name){ toast('请填写姓名'); return; }
   if(!tl){ toast('请填写带教导师'); return; }
-  if(idx>=0 && !goal){ toast('请填写本周成长目标'); return; }   // 编辑时才必填
   if(idx>=0){
     const i=state.interns[idx];
-    Object.assign(i,{name,role,week,phase,joinDate,gradDate,school,degree,tl,goal});
+    Object.assign(i,{name,role,week,phase,joinDate,gradDate,school,degree,tl});
     if(joinDate){ i.join = joinDate.slice(5).replace('-','.'); }
     toast(`已更新实习生：${name}`);
   } else {
     const ni=defaultIntern(name,role);
-    ni.week=week; ni.phase=phase; ni.joinDate=joinDate||'2026-09-07'; ni.gradDate=gradDate; ni.school=school; ni.degree=degree; ni.tl=tl; ni.goal=goal||'待设定 · 由带教导师制定本周目标';
+    ni.week=week; ni.phase=phase; ni.joinDate=joinDate||'2026-09-07'; ni.gradDate=gradDate; ni.school=school; ni.degree=degree; ni.tl=tl;
     ni.join = ni.joinDate.slice(5).replace('-','.');
     state.interns.push(ni);
     toast(`已添加实习生：${name}`);
@@ -1974,6 +1982,26 @@ function configHTML(){
     </div>
     <div style="margin-top:12px">
       <button class="mini-btn" style="padding:8px 16px" onclick="addSkillDim()">＋ 添加能力维度</button>
+    </div>
+  </div>
+
+  <div class="panel-card stagger" style="margin-top:16px">
+    <h3>${icon.flag}岗位选项（${getJobOptions().length} 个）</h3>
+    <div style="font-size:11.5px;color:var(--ink-3);margin:-8px 0 12px">个人信息中的岗位下拉选项，全局生效，增删改后即时可用</div>
+    <div class="org-rows">
+      ${getJobOptions().map((j,ji)=>`
+        <div class="org-row">
+          <div class="ot">
+            <b>${String(ji+1).padStart(2,'0')} · ${j}</b>
+          </div>
+          <div class="mg-ops">
+            <button class="mini-btn" onclick="editJobOpt(${ji})">编辑</button>
+            <button class="mini-btn danger" onclick="delJobOpt(${ji})" ${getJobOptions().length<=1?'disabled style="opacity:.4"':''}>删除</button>
+          </div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:12px">
+      <button class="mini-btn" style="padding:8px 16px" onclick="addJobOpt()">＋ 添加岗位</button>
     </div>
   </div>
 
@@ -2091,6 +2119,39 @@ function delSkillDim(di){
   cfg.skillDims.splice(di,1);
   closeModal(); render();
   toast('能力维度已删除');
+}
+
+/* ================= 岗位选项配置 ================= */
+function editJobOpt(ji){
+  const opts = getJobOptions();
+  openModal(`
+    <h3>编辑岗位</h3>
+    <div class="field"><label>岗位名称 <span class="req">*</span></label><input id="joName" value="${opts[ji]}"></div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="saveJobOpt(${ji})">保存</button>
+    </div>`);
+}
+function saveJobOpt(ji){
+  const name = $('#joName').value.trim();
+  if(!name){ toast('请填写岗位名称'); return; }
+  const opts = getJobOptions();
+  opts[ji] = name;
+  saveJobOptions(opts);
+  closeModal(); render();
+  toast(`岗位已更新：${name}`);
+}
+function addJobOpt(){
+  const opts = getJobOptions();
+  opts.push(`新岗位${opts.length+1}`);
+  saveJobOptions(opts);
+  render(); toast('已添加岗位，点击「编辑」完善名称');
+}
+function delJobOpt(ji){
+  const opts = getJobOptions();
+  opts.splice(ji,1);
+  saveJobOptions(opts);
+  render(); toast('岗位已删除');
 }
 function editPhase(pi){
   const cfg=ensureCfg(); const p=cfg.phases[pi];
