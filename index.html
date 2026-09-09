@@ -1860,8 +1860,9 @@ function accountsHTML(){
 function openAddAccount(){
   openModal(`
     <h3>新增账号</h3>
-    <div class="msub">账号名 = 姓名 + 5 位随机数字（自动生成，不重复）· 默认密码 123456</div>
+    <div class="msub">账号名 = 姓名 + 工号（如 李杰E1005），工号不可重复 · 默认密码 123456</div>
     <div class="field"><label>姓名 <span class="req">*</span></label><input id="aaName" placeholder="账号持有人姓名"></div>
+    <div class="field"><label>工号 <span class="req">*</span>（唯一，不可与其他账号重复）</label><input id="aaEmpNo" placeholder="如 E1005 / B1005"></div>
     <div class="field"><label>角色</label>
       <select id="aaRole">
         <option value="intern">实习生</option>
@@ -1879,12 +1880,16 @@ function openAddAccount(){
 }
 function addAccount(){
   const name = $('#aaName').value.trim();
+  const empNo = $('#aaEmpNo').value.trim().toUpperCase();
   if(!name){ toast('请填写姓名'); return; }
+  if(!empNo){ toast('请填写工号'); return; }
   const role = $('#aaRole').value;
   const job = $('#aaJob').value;
-  const uid = genAccountUid(name);
+  // 账号 = 姓名 + 工号；uid 冲突检测（同姓名同工号）
+  const uid = name + empNo;
   const list = getAccounts();
-  list.push({ uid, name, role, job, status:'active', auto:false, created:new Date().toISOString().slice(0,10) });
+  if(list.some(a=>a.uid===uid)){ toast(`账号 ${uid} 已存在，工号不可重复`); return; }
+  list.push({ uid, name, empNo, role, job, status:'active', auto:false, created:new Date().toISOString().slice(0,10) });
   saveAccounts(list);
   closeModal(); render();
   toast(`账号已创建：${uid}（密码 123456）`);
