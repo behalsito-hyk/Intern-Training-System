@@ -260,9 +260,17 @@ input,select,textarea{font-family:inherit}
   font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;
 }
 .support-block .st{flex:1;font-size:12px;color:#7A4E0E;line-height:1.45}
-.support-block.resolved{background:var(--green-bg);border-color:#CDE8D9}
-.support-block.resolved .q{background:var(--green)}
-.support-block.resolved .st{color:var(--brand-deep)}
+.support-block.inprog{background:var(--blue-bg);border-color:#C5DCF5}
+.support-block.inprog .q{background:var(--blue)}
+.support-block.inprog .st{color:#1F4E79}
+.support-block.done{background:var(--green-bg);border-color:#CDE8D9}
+.support-block.done .q{background:var(--green)}
+.support-block.done .st{color:var(--brand-deep)}
+.support-block.bad{background:#FDECEA;border-color:#F3C4BC}
+.support-block.bad .q{background:#C0392B}
+.support-block.bad .st{color:#922B21}
+.tag.unresolved{background:#FDECEA;color:#C0392B}
+.tag.inprogress{background:var(--blue-bg);color:var(--blue)}
 .card-foot{
   margin-top:auto;display:flex;align-items:center;justify-content:space-between;
   padding-top:12px;border-top:1px dashed var(--line);
@@ -647,9 +655,13 @@ input,select,textarea{font-family:inherit}
       <div class="foot-quote" id="footQuote">三个人，<b>各自向前一步</b>。</div>
       <div class="foot-meta" id="footMeta">数智化服务平台 · 双岗位培养<br>v0.5 · DEMO 原型</div>
       <div class="backup-row">
+        <button class="reset-btn" onclick="openCloudSync()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+          云端同步
+        </button>
         <button class="reset-btn" onclick="exportData()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-          导出数据备份
+          导出备份
         </button>
         <button class="reset-btn" onclick="document.getElementById('importFile').click()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
@@ -777,7 +789,7 @@ const MODELS = {
           goal:'从复现到修复，独立讲清一个业务缺陷',
           task:{ title:'会话状态流转缺陷修复与回归', status:'review', week:5 },
           progress:{ text:'讲清会话状态流转链路', star:true },
-          support:null, meeting:'09.08', tl:'王一帆',
+          support:null, meeting:'09.08', tl:'赵清和',
           skills:{ code:3, debug:3, quality:2, doc:3, comm:3 },
           timeline:[
             { w:'W1', t:'接入开发环境', d:'完成 onboarding checklist，跑通本地调试链路' },
@@ -971,14 +983,19 @@ let roleView = 'tl';
 let checkVer = 'v2';   // 转正考核版本：v1 维度权重 / v2 三维度必要条件（默认最新）
 
 /* ================= 卡点提报 + 发起沟通 ================= */
-/* 提报卡点（实习生） */
+const SP_STATUS = {
+  pending:    { label:'待协调', cls:'review' },
+  inprogress: { label:'进行中', cls:'doing' },
+  resolved:   { label:'已解决', cls:'done' },
+  unresolved: { label:'未解决', cls:'review' },
+};
+/* 提报卡点（实习生，支持多次提报，保留历史） */
 function openRaiseSupport(){
   const me = state.interns[getMyInternIdx()];
   if(!me){ toast('未找到当前实习生档案'); return; }
-  if(me.support && me.support.status==='pending'){ toast('已有待协调的卡点，请等待导师处理'); return; }
   openModal(`
     <h3>提报卡点</h3>
-    <div class="msub">描述当前遇到的阻塞或需要支持的事项，导师将协调解决</div>
+    <div class="msub">描述当前遇到的阻塞或需要支持的事项，可多次提报；导师协调后可在历史中查看结果</div>
     <div class="field"><label>卡点描述 <span class="req">*</span></label>
       <textarea id="rsText" placeholder="例如：缺少历史迭代文档，影响功能地图梳理…"></textarea>
     </div>
@@ -991,37 +1008,55 @@ function saveRaiseSupport(){
   const text = $('#rsText').value.trim();
   if(!text){ toast('请填写卡点描述'); return; }
   const me = state.interns[getMyInternIdx()];
-  me.support = { text, status:'pending' };
+  me.supports = me.supports || [];
+  me.supports.unshift({ id:'sp'+Date.now(), text, status:'pending', feedback:'', resolvedAt:'' });
   closeModal(); render();
   toast('卡点已提报，导师将协调处理');
 }
-/* 发起沟通（实习生发起给导师 / 导师发起给实习生） */
-function openMeetReq(fromRole){
-  const me = state.interns[getMyInternIdx()];
-  const isInternFrom = fromRole==='intern';
-  const whoSel = isInternFrom
-    ? `<div class="field"><label>沟通对象</label><input value="${me?me.tl:'带教导师'}" disabled style="background:var(--surface-2)"></div>`
-    : `<div class="field"><label>沟通对象（选择伙伴）<span class="req">*</span></label>
-        <select id="mrWho">${state.interns.map(x=>`<option value="${x.id}">${x.name} · ${roleLabel(x.role)}（第${x.week}周）</option>`).join('')}</select>
-      </div>`;
+/* 卡点状态操作（导师/HR）：开始协调 → 进行中；结果反馈 → 已解决/未解决 */
+function startCoord(internIdx, spId){
+  const i = state.interns[internIdx];
+  if(!i) return;
+  const s = (i.supports||[]).find(x=>x.id===spId);
+  if(!s) return;
+  s.status = 'inprogress';
+  render(); toast(`已开始协调：${i.name} 的卡点`);
+}
+function openSupportFeedback(internIdx, spId){
+  const i = state.interns[internIdx];
+  const s = i && (i.supports||[]).find(x=>x.id===spId);
+  if(!s) return;
   openModal(`
-    <h3>发起沟通</h3>
-    <div class="msub">${isInternFrom?'向带教导师发起 1:1 沟通请求，导师将收到通知并确认时间':'向伙伴发起沟通，对方将收到通知并可确认或调整时间'}</div>
-    ${whoSel}
-    <div class="field"><label>希望沟通的内容 <span class="req">*</span></label>
-      <textarea id="mrContent" placeholder="例如：对齐功能地图梳理思路，讨论下一阶段任务安排…"></textarea>
+    <h3>结果反馈</h3>
+    <div class="msub">${i.name} 的卡点：「${s.text}」</div>
+    <div class="field"><label>是否解决 <span class="req">*</span></label>
+      <select id="fbSolved">
+        <option value="yes">是 · 已解决</option>
+        <option value="no">否 · 未解决</option>
+      </select>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-      <div class="field"><label>希望沟通日期 <span class="req">*</span></label><input id="mrDate" type="date" value="2026-09-10"></div>
-      <div class="field"><label>时间段 <span class="req">*</span></label>
-        <select id="mrTime">${MEET_SLOTS.map(s=>`<option>${s}</option>`).join('')}</select>
-      </div>
+    <div class="field"><label>处理记录 <span class="req">*</span></label>
+      <textarea id="fbText" placeholder="选择「是」时填写怎么解决的；选择「否」时填写未解决的原因"></textarea>
     </div>
     <div class="modal-ft">
       <button class="btn-ghost" onclick="closeModal()">取消</button>
-      <button class="btn-primary sm" onclick="saveMeetReq('${fromRole}')">发起沟通</button>
+      <button class="btn-primary sm" onclick="saveSupportFeedback(${internIdx},'${spId}')">提交反馈</button>
     </div>`);
 }
+function saveSupportFeedback(internIdx, spId){
+  const i = state.interns[internIdx];
+  const s = i && (i.supports||[]).find(x=>x.id===spId);
+  if(!s) return;
+  const solved = $('#fbSolved').value==='yes';
+  const text = $('#fbText').value.trim();
+  if(!text){ toast(solved?'请填写怎么解决的':'请填写未解决的原因'); return; }
+  s.status = solved ? 'resolved' : 'unresolved';
+  s.feedback = (solved?'【解决方案】':'【未解决原因】') + text;
+  s.resolvedAt = new Date().toISOString().slice(0,10);
+  closeModal(); render();
+  toast(solved ? '卡点已解决，结果已记录' : '已记录未解决原因');
+}
+/* 发起沟通（实习生发起给导师 / 导师发起给实习生） */
 function saveMeetReq(fromRole){
   const content = $('#mrContent').value.trim();
   const date = $('#mrDate').value;
@@ -1095,13 +1130,13 @@ let loginUser = loadUser();   // 当前登录用户（启动时读取，未登�
 function loadUser(){
   try{ return JSON.parse(localStorage.getItem('qinghe_user')||'null'); }catch(e){ return null; }
 }
-function saveUser(u){ localStorage.setItem('qinghe_user', JSON.stringify(u)); }
+function saveUser(u){ localStorage.setItem('qinghe_user', JSON.stringify(u)); scheduleRemoteSave(); }
 /* 沟通请求（发起沟通）：实习生/导师均可发起，接收方同意或修改时间 */
 const MEET_SLOTS = ['09:00-10:00','10:00-11:00','11:00-12:00','14:00-15:00','15:00-16:00','16:00-17:00','19:00-20:00'];
 function getMeetings(){
   try{ const v = JSON.parse(localStorage.getItem('qinghe_meetings')||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; }
 }
-function saveMeetings(list){ localStorage.setItem('qinghe_meetings', JSON.stringify(list)); }
+function saveMeetings(list){ localStorage.setItem('qinghe_meetings', JSON.stringify(list)); scheduleRemoteSave(); }
 function meetStatusInfo(m){
   if(m.status==='agreed') return { label:'已同意 · '+(m.finalDate||m.date)+' '+(m.finalTime||m.time), cls:'done' };
   if(m.status==='rescheduled') return { label:'已改期 · '+(m.finalDate||m.date)+' '+(m.finalTime||m.time), cls:'doing' };
@@ -1112,13 +1147,13 @@ const JOB_DEF = ['产品','开发','TL','HR'];
 function getJobOptions(){
   try{ const v = JSON.parse(localStorage.getItem('qinghe_jobs')||'null'); return Array.isArray(v)&&v.length ? v : JOB_DEF; }catch(e){ return JOB_DEF; }
 }
-function saveJobOptions(opts){ localStorage.setItem('qinghe_jobs', JSON.stringify(opts)); }
+function saveJobOptions(opts){ localStorage.setItem('qinghe_jobs', JSON.stringify(opts)); scheduleRemoteSave(); }
 /* ================= 账号管理（HR） =================
    动态账号存 qinghe_accounts；新建实习生自动开号（姓名+5位随机数字，不重复） */
 function getAccounts(){
   try{ const v = JSON.parse(localStorage.getItem('qinghe_accounts')||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; }
 }
-function saveAccounts(list){ localStorage.setItem('qinghe_accounts', JSON.stringify(list)); }
+function saveAccounts(list){ localStorage.setItem('qinghe_accounts', JSON.stringify(list)); scheduleRemoteSave(); }
 function genAccountUid(name){
   const list = getAccounts();
   const exists = new Set(list.map(a=>a.uid));
@@ -1172,6 +1207,42 @@ function isHrUser(){
   const acc = findAccount(u.uid);
   return !!(acc && acc.role==='hr');
 }
+/* 当前登录导师的姓名（非导师返回 null） */
+function getMyTlName(){
+  const u = loginUser || loadUser();
+  if(!u) return null;
+  const acc = findAccount(u.uid);
+  if(acc && acc.role==='tl') return acc.name;
+  if(u.uid==='tl') return '赵清和';
+  if(u.tlName) return u.tlName;
+  return null;
+}
+/* 导师跨岗位带教判断：带教实习生覆盖 dev+product 两种类型时，岗位切换才显示 */
+function segShouldShow(){
+  const u = loginUser || loadUser();
+  if(!u) return true;                       // 未登录（演示态）
+  if(isHrUser()) return true;               // HR 恒显示
+  const tln = getMyTlName();
+  if(!tln) return false;                    // 实习生：隐藏
+  const jobs = new Set();
+  ['dev','product'].forEach(j=>{
+    let interns;
+    if(roleType===j){ interns = state.interns; }
+    else {
+      const saved = loadState();
+      interns = (saved && saved.jobs && saved.jobs[j]) ? saved.jobs[j].interns : MODELS[j].seed().interns;
+    }
+    if(interns.some(i=>i.tl===tln)) jobs.add(j);
+  });
+  return jobs.size > 1;                     // 仅带教单一类型时隐藏
+}
+/* 视角可见的实习生集合（导师仅见带教为自己的；HR/实习生默认） */
+function getVisibleInterns(){
+  const tln = roleView==='tl' ? getMyTlName() : null;
+  return state.interns
+    .map((i,ix)=>({ ...i, _idx:ix }))
+    .filter(x=>!tln || x.tl===tln);
+}
 /* 当前登录实习生索引：动态账号按 internId 关联；演示 intern 按姓名匹配 */
 function getMyInternIdx(){
   const u = loginUser || loadUser();
@@ -1193,12 +1264,14 @@ function setPw(uid, pw){
   try{ pws = JSON.parse(localStorage.getItem('qinghe_pw')||'{}'); }catch(e){}
   pws[uid] = pw;
   localStorage.setItem('qinghe_pw', JSON.stringify(pws));
+  scheduleRemoteSave();
 }
 function resetPw(uid){
   let pws = {};
   try{ pws = JSON.parse(localStorage.getItem('qinghe_pw')||'{}'); }catch(e){}
   delete pws[uid];
   localStorage.setItem('qinghe_pw', JSON.stringify(pws));
+  scheduleRemoteSave();
 }
 function doLogin(){
   const uid = $('#lgUser').value.trim().toLowerCase();
@@ -1319,6 +1392,102 @@ function saveProfile(){
   toast('个人信息已保存');
 }
 
+/* ================= 云端数据库同步（GitHub 仓库 data/db.json） =================
+   数据统一保存到 GitHub 仓库 JSON 文件：任何设备/域名访问均为最新数据，
+   无需手动导出/导入备份。未配置 token 时回落为本地存储模式。 */
+const DB_PATH = 'data/db.json';
+const DB_REPO = 'behalsito-hyk/Intern-Training-System';
+function getGhToken(){ try{ return localStorage.getItem('qinghe_gh_token')||''; }catch(e){ return ''; } }
+async function ghApi(path, opts){
+  const token = getGhToken();
+  const headers = { 'Authorization':'token '+token, 'Accept':'application/vnd.github+json', 'User-Agent':'qinghe-sync' };
+  const r = await fetch('https://api.github.com'+path, { method:(opts&&opts.method)||'GET', headers, body:(opts&&opts.body)?JSON.stringify(opts.body):undefined });
+  if(!r.ok) throw new Error('GitHub API '+r.status);
+  return r.json();
+}
+function collectDb(){
+  const get = k => { try{ return JSON.parse(localStorage.getItem(k)||'null'); }catch(e){ return null; } };
+  return {
+    schemaVersion: 2,
+    updatedAt: new Date().toISOString(),
+    state: get('qinghe_state'),
+    meetings: get('qinghe_meetings') || [],
+    accounts: get('qinghe_accounts') || [],
+    jobOptions: get('qinghe_jobs') || null,
+    pws: get('qinghe_pw') || {},
+  };
+}
+function applyDb(db){
+  if(!db) return false;
+  try{
+    if(db.state) localStorage.setItem('qinghe_state', JSON.stringify(db.state));
+    if(db.meetings) localStorage.setItem('qinghe_meetings', JSON.stringify(db.meetings));
+    if(db.accounts) localStorage.setItem('qinghe_accounts', JSON.stringify(db.accounts));
+    if(db.jobOptions) localStorage.setItem('qinghe_jobs', JSON.stringify(db.jobOptions));
+    if(db.pws) localStorage.setItem('qinghe_pw', JSON.stringify(db.pws));
+    return true;
+  }catch(e){ return false; }
+}
+let remoteSaving = false, remotePending = false;
+function scheduleRemoteSave(){
+  if(!getGhToken()) return;
+  remotePending = true;
+  if(remoteSaving) return;
+  remoteSaving = true;
+  setTimeout(async ()=>{
+    while(remotePending){
+      remotePending = false;
+      try{
+        const db = collectDb();
+        let sha = null;
+        try{ const ex = await ghApi('/repos/'+DB_REPO+'/contents/'+DB_PATH+'?ref=main'); sha = ex.sha; }catch(e){}
+        await ghApi('/repos/'+DB_REPO+'/contents/'+DB_PATH, { method:'PUT', body:{ message:'data sync', content: btoa(unescape(encodeURIComponent(JSON.stringify(db,null,2)))), branch:'main', sha } });
+      }catch(e){ /* 静默失败，下次保存自动重试 */ }
+    }
+    remoteSaving = false;
+  }, 1500);
+}
+async function remoteLoad(){
+  const raw = await ghApi('/repos/'+DB_REPO+'/contents/'+DB_PATH+'?ref=main');
+  return JSON.parse(decodeURIComponent(escape(atob((raw.content||'').replace(/\n/g,'')))));
+}
+/* 云同步设置弹窗 */
+function openCloudSync(){
+  const tk = getGhToken();
+  openModal(`
+    <h3>云端数据同步</h3>
+    <div class="msub">数据保存到 GitHub 仓库（data/db.json）：所有设备访问均为最新数据，无需手动备份还原。需要 GitHub Token（repo 权限）。</div>
+    <div class="field"><label>GitHub Token ${tk?'（已配置）':''}</label>
+      <input id="csToken" type="password" placeholder="${tk?'已保存，粘贴新 Token 可更换':'粘贴 Personal Access Token（repo 权限）'}">
+    </div>
+    <div class="lg-err" id="csErr"></div>
+    <div class="modal-ft">
+      ${tk?`<button class="btn-ghost" onclick="disableCloudSync()" style="color:#B3543F">停用云同步</button>`:''}
+      <button class="btn-primary sm" onclick="saveCloudSync()">保存并立即同步</button>
+    </div>`);
+}
+async function saveCloudSync(){
+  const t = $('#csToken').value.trim();
+  if(!t){ $('#csErr').textContent = '请粘贴 GitHub Token'; return; }
+  localStorage.setItem('qinghe_gh_token', t);
+  toast('云端同步已开启，正在同步数据…');
+  try{
+    const db = await remoteLoad();
+    const last = localStorage.getItem('qinghe_last_remote_updated');
+    if(db.updatedAt !== last){ applyDb(db); localStorage.setItem('qinghe_last_remote_updated', db.updatedAt); location.reload(); return; }
+    scheduleRemoteSave(); closeModal(); render();
+    toast('云端数据已是最新');
+  }catch(e){
+    scheduleRemoteSave(); closeModal(); render();
+    toast('云端尚无数据，已推送本地数据');
+  }
+}
+function disableCloudSync(){
+  localStorage.removeItem('qinghe_gh_token');
+  closeModal(); render();
+  toast('云同步已停用，数据仅保存在本设备');
+}
+
 /* ================= 数据持久化（升级不丢数据） =================
    存储结构带版本号；升级时按版本迁移、缺字段补默认，用户数据始终保留。
    每个岗位（dev/product）的数据独立保存，切换岗位互不覆盖。 */
@@ -1340,6 +1509,8 @@ function migrateIntern(i, job){
     timeline: i.timeline || [],
     m1: i.m1 || [],
     progressLog: i.progressLog || [],
+    supports: (Array.isArray(i.supports) && i.supports.length) ? i.supports
+      : (i.support ? [{ id:'sp_'+(i.id||'x')+'_1', text:i.support.text||'', status: i.support.status==='resolved' ? 'inprogress' : 'pending', feedback:'', resolvedAt:'' }] : []),
     joinDate: i.joinDate || '',
     gradDate: i.gradDate || '',
     school: i.school || '',
@@ -1564,9 +1735,10 @@ function crumb(){
 
 /* ================= 渲染：培养总览 ================= */
 function stats(){
-  const n=state.interns.length;
-  const review=state.interns.filter(i=>i.task.status==='review').length;
-  const need=state.interns.filter(i=>i.support&&i.support.status==='pending').length;
+  const vis = getVisibleInterns();
+  const n=vis.length;
+  const review=vis.filter(i=>i.task.status==='review').length;
+  const need=vis.filter(i=>(i.supports||[]).some(s=>s.status==='pending'||s.status==='inprogress')).length;
   return {n,review,need};
 }
 function phaseMeta(idx){ return {name:getPhases()[idx].name, pct:idx+1, total:getPhases().length}; }
@@ -1574,12 +1746,15 @@ function cardHTML(i,idx){
   const ph=phaseMeta(i.phase);
   const bars=getPhases().map((_,b)=>`<i class="${b<i.phase?'on':b===i.phase&&i.week%2===1?'half':''}"></i>`).join('');
   const t=TAG[i.task.status];
-  const sup = i.support ? `
-    <div class="support-block ${i.support.status==='resolved'?'resolved':''}">
-      <div class="q">${i.support.status==='resolved'?'✓':'?'}</div>
-      <div class="st">${i.support.text}</div>
-      ${i.support.status==='pending'?`<button class="mini-btn" onclick="resolveSupport('${i.id}')">协调支持</button>`:`<span class="tag done" style="flex-shrink:0">已协调</span>`}
-    </div>`:'';
+  const sup = (i.supports||[]).filter(s=>s.status==='pending'||s.status==='inprogress');
+  const spCls = s => s.status==='inprogress' ? 'inprog' : '';
+  const supHtml = sup.length ? sup.slice(0,2).map(s=>`
+    <div class="support-block ${spCls(s)}">
+      <div class="q">${s.status==='inprogress'?'…':'?'}</div>
+      <div class="st">${s.text}</div>
+      ${(roleView!=='intern' && s.status==='pending')?`<button class="mini-btn" onclick="startCoord(${i._idx!==undefined?i._idx:idx},'${s.id}')">开始协调</button>`:''}
+      ${(roleView!=='intern' && s.status==='inprogress')?`<button class="mini-btn" onclick="openSupportFeedback(${i._idx!==undefined?i._idx:idx},'${s.id}')">结果反馈</button>`:''}
+    </div>`).join('') + (sup.length>2?`<div class="progress-line" style="margin-top:-6px"><span>另有 ${sup.length-2} 条进行中的卡点</span></div>`:'') : '';
   return `
   <article class="card stagger" data-card="${i.id}">
     <div class="card-top">
@@ -1608,9 +1783,10 @@ function cardHTML(i,idx){
 }
 function renderOverview(){
   const s=stats();
-  const list = state.interns.filter(i=>{
+  const vis = getVisibleInterns();
+  const list = vis.filter(i=>{
     if(curFilter==='review') return i.task.status==='review';
-    if(curFilter==='need') return i.support&&i.support.status==='pending';
+    if(curFilter==='need') return (i.supports||[]).some(sp=>sp.status==='pending'||sp.status==='inprogress');
     return true;
   });
   const hint = curFilter!=='all' ? `<div class="filter-hint">当前筛选：<a onclick="curFilter='all';render()">${curFilter==='review'?'待验收任务':'需要支持'}</a> · 点击清除筛选</div>` : '';
@@ -1659,7 +1835,7 @@ function taskListHTML(){
     const me = state.interns[getMyInternIdx()];
     if(me) all.push({...me.task, intern:me.name, ava:me.name[0], id:me.id});
   } else {
-    state.interns.forEach(i=>{
+    getVisibleInterns().forEach(i=>{
       all.push({...i.task, intern:i.name, ava:i.name[0], id:i.id});
     });
   }
@@ -1725,12 +1901,12 @@ function profileHTML(){
   <div class="profile-wrap">
     <aside class="pick-list stagger">
       ${isIntern
-        ? `<div class="pick-item active"><div class="p-avatar">${i.name[0]}</div><div class="pi"><b>${i.name}</b><span>${roleLabel(i.role)} · 第${i.week}周</span></div><div class="ph">${i.phase+1}/4</div></div>`
-        : state.interns.map((x,xi)=>`
-          <button class="pick-item ${xi===internViewIdx?'active':''}" onclick="internViewIdx=${xi};render()">
+        ? `<div class="pick-item active"><div class="p-avatar">${i.name[0]}</div><div class="pi"><b>${i.name}</b><span>${roleLabel(i.role)} · 第${i.week}周</span></div><div class="ph">${i.phase+1}/${getPhases().length}</div></div>`
+        : getVisibleInterns().map(x=>`
+          <button class="pick-item ${x._idx===internViewIdx?'active':''}" onclick="internViewIdx=${x._idx};render()">
             <div class="p-avatar">${x.name[0]}</div>
             <div class="pi"><b>${x.name}</b><span>${roleLabel(x.role)} · 第${x.week}周</span></div>
-            <div class="ph">${x.phase+1}/4</div>
+            <div class="ph">${x.phase+1}/${getPhases().length}</div>
           </button>`).join('')}
     </aside>
     <div class="panel">
@@ -1806,10 +1982,10 @@ function supportHTML(){
     ${renderMeetings()}
   </div>
   <div class="duo">
-    <div class="panel-card stagger" style="box-shadow:var(--shadow-s)">
+      <div class="panel-card stagger" style="box-shadow:var(--shadow-s)">
       <h3>${icon.cal}${isIntern?'1:1 安排':'本周 1:1 安排'}</h3>
       <div class="plain-list">
-        ${state.interns.filter(x=>!isIntern||x.id===state.interns[internViewIdx].id).map(i=>`
+        ${(isIntern ? [{ ...state.interns[internViewIdx], _idx:internViewIdx }] : getVisibleInterns()).map(i=>`
           <div class="plain-row">
             <div class="ic">${icon.cal}</div>
             <div class="pm"><b>${i.name} · 下次 1:1</b><span>${i.meeting} · 带教 ${i.tl} · 建议时长 30min</span></div>
@@ -1818,14 +1994,26 @@ function supportHTML(){
       </div>
     </div>
     <div class="panel-card stagger" style="box-shadow:var(--shadow-s)">
-      <h3>${icon.bell}支持请求（卡点）${isIntern?'（我的）':''}</h3>
+      <h3>${icon.bell}支持请求（卡点历史）${isIntern?'（我的）':''}</h3>
       <div class="plain-list">
-        ${state.interns.filter(x=>x.support&&(!isIntern||x.id===state.interns[internViewIdx].id)).map(i=>`
+        ${(()=> {
+          const interns = isIntern ? [{ ...state.interns[internViewIdx], _idx: internViewIdx }] : getVisibleInterns();
+          const rows = [];
+          interns.forEach(x=>{ (x.supports||[]).forEach(sp=>{ rows.push({ x, sp }); }); });
+          if(rows.length===0) return `<div class="mg-empty">暂无卡点记录${isIntern?'，可在个人成长页「提报卡点」':''}</div>`;
+          rows.sort((a,b)=>(SP_STATUS[a.sp.status]&&a.sp.status==='pending'?0:1)-(SP_STATUS[b.sp.status]&&b.sp.status==='pending'?0:1));
+          return rows.map(({x,sp})=>{
+            const si = SP_STATUS[sp.status] || SP_STATUS.pending;
+            const canAct = !isIntern && sp.status==='pending';
+            const canFb = !isIntern && sp.status==='inprogress';
+            return `
           <div class="plain-row">
-            <div class="ic" style="background:${i.support.status==='pending'?'var(--amber-bg)':'var(--brand-softer)'};color:${i.support.status==='pending'?'var(--amber)':'var(--brand-deep)'}">${i.support.status==='pending'?'?':'✓'}</div>
-            <div class="pm"><b>${i.name} · ${i.support.status==='pending'?'待协调':'已协调'}</b><span>${i.support.text}</span></div>
-            ${i.support.status==='pending'&&!isIntern?`<button class="mini-btn" onclick="resolveSupport('${i.id}')">去协调</button>`:i.support.status==='pending'?`<span class="tag review">待协调</span>`:`<span class="tag done">已解决</span>`}
-          </div>`).join('')}
+            <div class="ic" style="background:${sp.status==='pending'?'var(--amber-bg)':sp.status==='inprogress'?'var(--blue-bg)':'var(--brand-softer)'};color:${sp.status==='pending'?'var(--amber)':sp.status==='inprogress'?'var(--blue)':'var(--brand-deep)'}">${sp.status==='pending'?'?':sp.status==='inprogress'?'…':'✓'}</div>
+            <div class="pm"><b>${x.name} · ${si.label}</b><span>${sp.text}</span>${sp.feedback?`<span style="color:var(--brand-deep)">${sp.feedback}${sp.resolvedAt?'（'+sp.resolvedAt+'）':''}</span>`:''}</div>
+            ${canAct?`<button class="mini-btn" onclick="startCoord(${x._idx},'${sp.id}')">开始协调</button>`:canFb?`<button class="mini-btn" onclick="openSupportFeedback(${x._idx},'${sp.id}')">结果反馈</button>`:`<span class="tag ${si.cls}">${si.label}</span>`}
+          </div>`;
+          }).join('');
+        })()}
       </div>
     </div>
   </div>`;
@@ -1862,7 +2050,7 @@ function renderMeetings(){
 
 /* ================= 渲染：阶段回顾 ================= */
 function reviewHTML(){
-  const intern=state.interns[0];
+  const intern=getVisibleInterns()[0]||state.interns[0];
   return `
   <section class="hero stagger">
     <div>
@@ -2001,7 +2189,13 @@ function prepareHTML(){
       <h1>转正准备</h1>
       <div class="sub">让转正决策有过程数据支撑，而不是一次答辩定生死。</div>
     </div>
-    <div class="hero-actions">${pick}</div>
+    <div class="hero-actions">${!isIntern&&roleView!=='intern'?`
+    <div class="pt-pick stagger">
+      <span class="pl">查看伙伴</span>
+      <select onchange="internViewIdx=+this.value;render()">
+        ${getVisibleInterns().map(x=>`<option value="${x._idx!==undefined?x._idx:''}" ${x._idx===internViewIdx?'selected':''}>${x.name} · ${roleLabel(x.role)}（第${x.week}周）</option>`).join('')}
+      </select>
+    </div>`:''}</div>
   </section>
   <div class="steps stagger">
     ${[['材料准备','成长档案 + 成果清单'],['必要条件核验','V2 考核体系'],['导师评估','带教导师评价'],['评审会','答辩 + 集体评议'],['结果归档','HR 确认与反馈']].map((s,si)=>`
@@ -2151,7 +2345,7 @@ function defaultIntern(name, roleName){
   };
 }
 function manageHTML(){
-  const list = state.interns;
+  const list = getVisibleInterns();   // 导师仅管理带教为自己的实习生；HR 管理全部
   return `
   <section class="hero stagger">
     <div>
@@ -2163,7 +2357,7 @@ function manageHTML(){
   </section>
   <div class="mg-list">
     ${list.length===0?`<div class="mg-empty">暂无实习生，点击右上角「添加实习生」</div>`:
-      list.map((i,idx)=>`
+      list.map(i=>`
       <div class="mg-row stagger">
         <div class="p-avatar">${i.name[0]}</div>
         <div class="mg-info">
@@ -2172,8 +2366,8 @@ function manageHTML(){
         </div>
         <div class="mg-goal"><span>本周目标</span>${i.goal}</div>
         <div class="mg-ops">
-          <button class="mini-btn" onclick="openInternModal(${idx})">编辑</button>
-          <button class="mini-btn danger" onclick="confirmDelete(${idx})">删除</button>
+          <button class="mini-btn" onclick="openInternModal(${i._idx!==undefined?i._idx:idx})">编辑</button>
+          <button class="mini-btn danger" onclick="confirmDelete(${i._idx!==undefined?i._idx:idx})">删除</button>
         </div>
       </div>`).join('')}
   </div>`;
@@ -2671,7 +2865,7 @@ function orgData(){
   const otherList = MODELS[other].seed().interns.map(i=>({...i, job:other}));
   const all = [...curList, ...otherList];
   const review = all.filter(i=>i.task.status==='review').length;
-  const need = all.filter(i=>i.support&&i.support.status==='pending').length;
+  const need = all.filter(i=>(i.supports||[]).some(s=>s.status==='pending'||s.status==='inprogress')).length;
   // 阶段分布（按各自岗位的阶段索引）
   const stageMap = {};
   all.forEach(i=>{
@@ -2686,7 +2880,7 @@ function orgData(){
     i.job==='dev'?m.dev++:m.prod++;
     m.total++;
     if(i.task.status==='review') m.review++;
-    if(i.support&&i.support.status==='pending') m.need++;
+    if(i.supports&&i.supports.some(s=>s.status==='pending'||s.status==='inprogress')) m.need++;
   });
   const devs = all.filter(i=>i.job==='dev').length;
   const pros = all.filter(i=>i.job==='product').length;
@@ -2776,6 +2970,8 @@ function render(){
   renderFooter();
   // 视角切换仅 HR 可用；其他角色锁定自身视角（隐藏切换控件）
   $('#vs').style.display = isHrUser() ? '' : 'none';
+  // 岗位模式切换：HR 恒显示；导师带教跨岗位时显示；实习生/单一岗位隐藏
+  $('#seg').style.display = segShouldShow() ? '' : 'none';
   const role = roleView==='intern';
   const hr = roleView==='hr';
   // 导师视角标签随岗位模式联动：开发=技术导师，产品=产品导师
@@ -2817,6 +3013,7 @@ function render(){
   $('#content').innerHTML = html;
   renderNav();
   saveState();   // 数据变更后统一持久化，升级/刷新不丢数据
+  scheduleRemoteSave();   // 云端数据库同步（配置 token 后生效）
 }
 
 /* 删除任务：仅导师/HR 视角可用（实习生无此权限） */
@@ -3070,6 +3267,16 @@ $('#fab').addEventListener('click',()=>{ openNewTask(); });
     }
   }
   render();
+  // 云端模式：拉取 GitHub 数据库最新数据（有更新则应用并重载）
+  if(getGhToken()){
+    remoteLoad().then(db=>{
+      if(db && db.updatedAt && db.updatedAt !== localStorage.getItem('qinghe_last_remote_updated')){
+        applyDb(db);
+        localStorage.setItem('qinghe_last_remote_updated', db.updatedAt);
+        location.reload();
+      }
+    }).catch(()=>{});
+  }
 })();
 </script>
 </body>
