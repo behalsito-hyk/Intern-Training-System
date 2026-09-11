@@ -1039,6 +1039,14 @@ function syncAccountByIntern(intern){
 function findAccount(uid){
   return getAccounts().find(a=>a.uid===uid);
 }
+/* 当前登录用户是否为 HR（仅 HR 可切换角色视角） */
+function isHrUser(){
+  const u = loginUser || loadUser();
+  if(!u) return false;
+  if(u.uid==='hr') return true;
+  const acc = findAccount(u.uid);
+  return !!(acc && acc.role==='hr');
+}
 /* 当前登录实习生索引：动态账号按 internId 关联；演示 intern 按姓名匹配 */
 function getMyInternIdx(){
   const u = loginUser || loadUser();
@@ -1090,8 +1098,9 @@ function loginSuccess(uid, dyn){
   if(!a) return;
   loginUser = { uid, name:a.name, label: dyn? (dyn.role==='intern'?'实习生':'账号用户') : a.label, job: a.job, initial:a.name[0], empNo: dyn? (dyn.empNo||'') : (a.empNo||''), email:'', phone:'' };
   saveUser(loginUser);
-  roleView = dyn ? 'intern' : a.role;
-  curView = dyn ? 'profile' : (a.role==='hr' ? 'org' : 'overview');
+  const dynRole = dyn ? (dyn.role==='hr' ? 'hr' : dyn.role==='tl' ? 'tl' : 'intern') : a.role;
+  roleView = dynRole;
+  curView = dynRole==='intern' ? 'profile' : (dynRole==='hr' ? 'org' : 'overview');
   if(roleView==='intern'){ internViewIdx = getMyInternIdx(); }   // 实习生登录：锁定本人档案
   $('#loginMask').style.display = 'none';
   $('#lgUser').value=''; $('#lgPass').value=''; $('#lgErr').textContent='';
@@ -1556,6 +1565,7 @@ function taskListHTML(){
         ${t.status==='review'&&!isIntern?`<button class="mini-btn" onclick="reviewTask('${t.id}')">去验收</button>`:''}
         ${t.status==='doing'&&isIntern?`<button class="mini-btn" onclick="openSubmitWork('${t.id}')">提交成果</button>`:''}
         ${t.status==='doing'&&!isIntern?`<button class="mini-btn" onclick="toReview('${t.id}')">提交验收</button>`:''}
+        ${!isIntern?`<button class="mini-btn danger" onclick="confirmDeleteTask('${t.id}')">删除</button>`:''}
       </div>`).join('')}
   </div>`;
 }
@@ -1568,6 +1578,19 @@ function skillBars(skills){
       <div class="bar"><i style="width:${(skills[d.key]||0)/5*100}%"></i></div>
       <div class="sv">${skills[d.key]||0}/5</div>
     </div>`).join('');
+}
+/* 成长轨迹：里程碑 + 成长任务按周次整合排序（任务按其 task.week 落入对应周） */
+function buildTimeline(i){
+  const items = (i.timeline||[]).map(t=>({ w:t.w, t:t.t, d:t.d, cur:!!t.cur, task:null }));
+  if(i.task && i.task.title && i.task.title.indexOf('待分配')<0){
+    const tw = 'W' + i.task.week;
+    const hit = items.find(x=>x.w===tw);
+    if(hit){ hit.task = i.task.title; }
+    else { items.push({ w:tw, t:i.task.title, d: i.task.status==='review'?'成长任务 · 待验收' : i.task.status==='done'?'成长任务 · 已验收':'成长任务 · 进行中', cur:true, task:i.task.title }); }
+  }
+  const wnum = w => { const m = String(w).match(/\d+/); return m ? parseInt(m[0],10) : 0; };
+  items.sort((a,b)=>wnum(a.w)-wnum(b.w));
+  return items;
 }
 function profileHTML(){
   const i=state.interns[internViewIdx];
@@ -1614,11 +1637,11 @@ function profileHTML(){
       <div class="panel-card stagger">
         <h3>${icon.target}成长轨迹</h3>
         <div class="tl">
-          ${i.timeline.map(t=>`
+          ${buildTimeline(i).map(t=>`
             <div class="tl-item ${t.cur?'':'past'}">
               <div class="tw">${t.w}${t.cur?'<span class="tcur">当前</span>':''}</div>
-              <div class="tt">${t.t}</div>
-              <div class="td">${t.d}</div>
+              <div class="tt">${t.task?`📋 ${t.task}`:t.t}</div>
+              <div class="td">${t.task?(i.task.status==='review'?'成长任务 · 待验收':i.task.status==='done'?'成长任务 · 已验收':'成长任务 · 进行中'):t.d}</div>
             </div>`).join('')}
         </div>
       </div>
@@ -2590,6 +2613,8 @@ function render(){
   clampPhase();
   crumb();
   renderFooter();
+  // 视角切换仅 HR 可用；其他角色锁定自身视角（隐藏切换控件）
+  $('#vs').style.display = isHrUser() ? '' : 'none';
   const role = roleView==='intern';
   const hr = roleView==='hr';
   // 导师视角标签随岗位模式联动：开发=技术导师，产品=产品导师
@@ -2631,6 +2656,28 @@ function render(){
   $('#content').innerHTML = html;
   renderNav();
   saveState();   // 数据变更后统一持久化，升级/刷新不丢数据
+}
+
+/* 删除任务：仅导师/HR 视角可用（实习生无此权限） */
+function confirmDeleteTask(id){
+  const i = state.interns.find(x=>x.id===id);
+  if(!i) return;
+  if(roleView==='intern'){ toast('实习生不能删除任务'); return; }
+  openModal(`
+    <h3>删除任务</h3>
+    <div class="msub">删除「${i.task.title}」后，${i.name} 的本周任务将恢复为待分配状态</div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" style="background:#B3543F" onclick="deleteTask('${i.id}')">确认删除</button>
+    </div>`);
+}
+function deleteTask(id){
+  const i = state.interns.find(x=>x.id===id);
+  if(!i) return;
+  const title = i.task.title;
+  i.task = { title:'待分配 · 本周成长任务', status:'doing', week:i.week };
+  closeModal(); render();
+  toast(`任务已删除：${title}`);
 }
 
 /* ================= 交互：任务 ================= */
@@ -2781,6 +2828,7 @@ $('#vsBtn').addEventListener('click',e=>{ e.stopPropagation(); $('#vsMenu').clas
 document.addEventListener('click',e=>{ if(!e.target.closest('.view-switch')) $('#vsMenu').classList.remove('open'); });
 document.querySelectorAll('.vs-opt').forEach(b=>{
   b.addEventListener('click',()=>{
+    if(!isHrUser()){ $('#vsMenu').classList.remove('open'); toast('仅 HR 可切换角色视角'); return; }
     roleView = b.dataset.view;
     $('#vsMenu').classList.remove('open');
     if(roleView==='intern'){ curView='profile'; toast('已切换为实习生视角（演示）'); }
@@ -2839,7 +2887,8 @@ $('#fab').addEventListener('click',()=>{ openNewTask(); });
   if(savedUser){
     loginUser = savedUser;
     const dyn = findAccount(savedUser.uid);
-    roleView = dyn ? 'intern' : (savedUser.uid==='intern' ? 'intern' : savedUser.uid==='hr' ? 'hr' : 'tl');
+    roleView = dyn ? (dyn.role==='hr' ? 'hr' : dyn.role==='tl' ? 'tl' : 'intern') : (savedUser.uid==='intern' ? 'intern' : savedUser.uid==='hr' ? 'hr' : 'tl');
+    if(roleView==='intern'){ internViewIdx = getMyInternIdx(); }
     $('#loginMask').style.display = 'none';
   } else {
     roleView = 'tl';
