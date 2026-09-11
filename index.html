@@ -970,8 +970,122 @@ let internViewIdx = 0;
 let roleView = 'tl';
 let checkVer = 'v2';   // 转正考核版本：v1 维度权重 / v2 三维度必要条件（默认最新）
 
-/* ================= 账号体系（登录 / 个人信息） =================
-   演示账号：tl / hr / intern，密码统一 123456；登录态存 localStorage */
+/* ================= 卡点提报 + 发起沟通 ================= */
+/* 提报卡点（实习生） */
+function openRaiseSupport(){
+  const me = state.interns[getMyInternIdx()];
+  if(!me){ toast('未找到当前实习生档案'); return; }
+  if(me.support && me.support.status==='pending'){ toast('已有待协调的卡点，请等待导师处理'); return; }
+  openModal(`
+    <h3>提报卡点</h3>
+    <div class="msub">描述当前遇到的阻塞或需要支持的事项，导师将协调解决</div>
+    <div class="field"><label>卡点描述 <span class="req">*</span></label>
+      <textarea id="rsText" placeholder="例如：缺少历史迭代文档，影响功能地图梳理…"></textarea>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="saveRaiseSupport()">提交卡点</button>
+    </div>`);
+}
+function saveRaiseSupport(){
+  const text = $('#rsText').value.trim();
+  if(!text){ toast('请填写卡点描述'); return; }
+  const me = state.interns[getMyInternIdx()];
+  me.support = { text, status:'pending' };
+  closeModal(); render();
+  toast('卡点已提报，导师将协调处理');
+}
+/* 发起沟通（实习生发起给导师 / 导师发起给实习生） */
+function openMeetReq(fromRole){
+  const me = state.interns[getMyInternIdx()];
+  const isInternFrom = fromRole==='intern';
+  const whoSel = isInternFrom
+    ? `<div class="field"><label>沟通对象</label><input value="${me?me.tl:'带教导师'}" disabled style="background:var(--surface-2)"></div>`
+    : `<div class="field"><label>沟通对象（选择伙伴）<span class="req">*</span></label>
+        <select id="mrWho">${state.interns.map(x=>`<option value="${x.id}">${x.name} · ${roleLabel(x.role)}（第${x.week}周）</option>`).join('')}</select>
+      </div>`;
+  openModal(`
+    <h3>发起沟通</h3>
+    <div class="msub">${isInternFrom?'向带教导师发起 1:1 沟通请求，导师将收到通知并确认时间':'向伙伴发起沟通，对方将收到通知并可确认或调整时间'}</div>
+    ${whoSel}
+    <div class="field"><label>希望沟通的内容 <span class="req">*</span></label>
+      <textarea id="mrContent" placeholder="例如：对齐功能地图梳理思路，讨论下一阶段任务安排…"></textarea>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>希望沟通日期 <span class="req">*</span></label><input id="mrDate" type="date" value="2026-09-10"></div>
+      <div class="field"><label>时间段 <span class="req">*</span></label>
+        <select id="mrTime">${MEET_SLOTS.map(s=>`<option>${s}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="closeModal()">取消</button>
+      <button class="btn-primary sm" onclick="saveMeetReq('${fromRole}')">发起沟通</button>
+    </div>`);
+}
+function saveMeetReq(fromRole){
+  const content = $('#mrContent').value.trim();
+  const date = $('#mrDate').value;
+  const time = $('#mrTime').value;
+  if(!content){ toast('请填写希望沟通的内容'); return; }
+  if(!date){ toast('请选择沟通日期'); return; }
+  const me = state.interns[getMyInternIdx()];
+  const list = getMeetings();
+  let rec;
+  if(fromRole==='intern'){
+    rec = { id:'mr'+Date.now(), fromRole, internId:me.id, internName:me.name, tlName:me.tl, content, date, time, status:'pending', finalDate:'', finalTime:'', createdAt:new Date().toISOString().slice(0,10) };
+  } else {
+    const who = state.interns.find(x=>x.id===$('#mrWho').value) || state.interns[0];
+    rec = { id:'mr'+Date.now(), fromRole, internId:who.id, internName:who.name, tlName:who.tl, content, date, time, status:'pending', finalDate:'', finalTime:'', createdAt:new Date().toISOString().slice(0,10) };
+  }
+  list.push(rec);
+  saveMeetings(list);
+  closeModal(); render();
+  toast(fromRole==='intern' ? `沟通请求已发起，${rec.tlName} 将收到通知` : `已向 ${rec.internName} 发起沟通，对方将收到通知`);
+}
+/* 接收方操作：同意 / 修改时间 */
+function agreeMeetReq(id){
+  const list = getMeetings();
+  const m = list.find(x=>x.id===id);
+  if(!m) return;
+  m.status='agreed'; m.finalDate=m.date; m.finalTime=m.time;
+  saveMeetings(list); render();
+  toast(`沟通已同意：${m.finalDate} ${m.finalTime}`);
+}
+function openReschedule(id){
+  const m = getMeetings().find(x=>x.id===id);
+  if(!m) return;
+  openModal(`
+    <h3>修改沟通时间</h3>
+    <div class="msub">${m.fromRole==='intern'?`${m.internName} 希望沟通「${m.content}」`:`与 ${m.internName} 沟通「${m.content}」`} · 原时间 ${m.date} ${m.time}</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="field"><label>调整至日期 <span class="req">*</span></label><input id="rsDate" type="date" value="${m.date}"></div>
+      <div class="field"><label>时间段</label>
+        <select id="rsTime">${MEET_SLOTS.map(s=>`<option ${s===m.time?'selected':''}>${s}</option>`).join('')}</select>
+      </div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn-ghost" onclick="openMeetPage()">返回</button>
+      <button class="btn-primary sm" onclick="saveReschedule('${id}')">确认改期</button>
+    </div>`);
+}
+function saveReschedule(id){
+  const list = getMeetings();
+  const m = list.find(x=>x.id===id);
+  if(!m) return;
+  m.status='rescheduled';
+  m.finalDate=$('#rsDate').value||m.date;
+  m.finalTime=$('#rsTime').value||m.time;
+  saveMeetings(list); render();
+  toast(`沟通已改期：${m.finalDate} ${m.finalTime}`);
+}
+function openMeetPage(){
+  roleView = roleView||'tl';
+  if(roleView==='intern'){ curView='support'; }
+  else if(roleView==='hr'){ curView='support'; }
+  else { curView='support'; }
+  closeModal(); render();
+}
+/* 演示账号：tl / hr / intern，密码统一 123456；登录态存 localStorage */
 const ACCOUNTS = {
   tl:     { pw:'123456', role:'tl',     name:'产品导师 · 赵清和', label:'带教导师',   job:'TL',  initial:'赵', empNo:'' },
   hr:     { pw:'123456', role:'hr',     name:'HR 管理员',         label:'组织管理员', job:'HR',  initial:'HR', empNo:'' },
@@ -982,6 +1096,17 @@ function loadUser(){
   try{ return JSON.parse(localStorage.getItem('qinghe_user')||'null'); }catch(e){ return null; }
 }
 function saveUser(u){ localStorage.setItem('qinghe_user', JSON.stringify(u)); }
+/* 沟通请求（发起沟通）：实习生/导师均可发起，接收方同意或修改时间 */
+const MEET_SLOTS = ['09:00-10:00','10:00-11:00','11:00-12:00','14:00-15:00','15:00-16:00','16:00-17:00','19:00-20:00'];
+function getMeetings(){
+  try{ const v = JSON.parse(localStorage.getItem('qinghe_meetings')||'[]'); return Array.isArray(v)?v:[]; }catch(e){ return []; }
+}
+function saveMeetings(list){ localStorage.setItem('qinghe_meetings', JSON.stringify(list)); }
+function meetStatusInfo(m){
+  if(m.status==='agreed') return { label:'已同意 · '+(m.finalDate||m.date)+' '+(m.finalTime||m.time), cls:'done' };
+  if(m.status==='rescheduled') return { label:'已改期 · '+(m.finalDate||m.date)+' '+(m.finalTime||m.time), cls:'doing' };
+  return { label:'待确认', cls:'review' };
+}
 /* 岗位选项（全局可配置）：个人信息岗位下拉的候选值 */
 const JOB_DEF = ['产品','开发','TL','HR'];
 function getJobOptions(){
@@ -1631,7 +1756,7 @@ function profileHTML(){
         <h3>${icon.target}能力维度${isIntern?`<span style="margin-left:auto;font-size:11px;color:var(--ink-3);font-weight:400">结合阶段自评与导师确认 · 5 分制</span>`:''}</h3>
         ${skillBars(i.skills)}
         <div class="skill-legend">${getSkillDims().map(d=>`<span>▲ ${d.name}</span>`).join('')}</div>
-        ${isIntern?`<div style="margin-top:14px;display:flex;gap:10px"><button class="btn-primary sm" onclick="openSelfReview()">阶段自评</button><button class="btn-ghost" onclick="toast('已提交卡点提报（演示）')">提报卡点</button></div>`:''}
+        ${isIntern?`<div style="margin-top:14px;display:flex;gap:10px"><button class="btn-primary sm" onclick="openSelfReview()">阶段自评</button><button class="btn-ghost" onclick="openRaiseSupport()">提报卡点</button><button class="btn-ghost" onclick="openMeetReq('intern')">发起沟通</button></div>`:''}
       </div>
 
       <div class="panel-card stagger">
@@ -1672,7 +1797,14 @@ function supportHTML(){
       <h1>${isIntern?'我的沟通':'沟通与支持'}</h1>
       <div class="sub">让每一次 1:1 有结论，让每个卡点有人接住。</div>
     </div>
+    <div class="hero-actions">
+      <button class="btn-primary" onclick="openMeetReq('${isIntern?'intern':'tl'}')">＋ 发起沟通</button>
+    </div>
   </section>
+  <div class="panel-card stagger" style="margin-bottom:18px;box-shadow:var(--shadow-s)">
+    <h3>${icon.chat}沟通请求${isIntern?'（我的）':'（待确认置顶）'}</h3>
+    ${renderMeetings()}
+  </div>
   <div class="duo">
     <div class="panel-card stagger" style="box-shadow:var(--shadow-s)">
       <h3>${icon.cal}${isIntern?'1:1 安排':'本周 1:1 安排'}</h3>
@@ -1686,7 +1818,7 @@ function supportHTML(){
       </div>
     </div>
     <div class="panel-card stagger" style="box-shadow:var(--shadow-s)">
-      <h3>${icon.bell}支持请求${isIntern?'（我的）':''}</h3>
+      <h3>${icon.bell}支持请求（卡点）${isIntern?'（我的）':''}</h3>
       <div class="plain-list">
         ${state.interns.filter(x=>x.support&&(!isIntern||x.id===state.interns[internViewIdx].id)).map(i=>`
           <div class="plain-row">
@@ -1697,6 +1829,35 @@ function supportHTML(){
       </div>
     </div>
   </div>`;
+}
+/* 沟通请求列表渲染：实习生仅看本人相关；pending 且我是接收方时可同意/改期 */
+function renderMeetings(){
+  const isIntern = roleView==='intern';
+  const me = state.interns[getMyInternIdx()];
+  let list = getMeetings();
+  if(isIntern && me){ list = list.filter(m=>m.internId===me.id); }
+  if(list.length===0) return `<div class="mg-empty">暂无沟通请求，点击右上角「发起沟通」</div>`;
+  list = list.slice().sort((a,b)=>(a.status==='pending'?0:1)-(b.status==='pending'?0:1) || (a.id<b.id?1:-1));
+  return `<div class="plain-list">` + list.map(m=>{
+    const fromMe = (isIntern && m.fromRole==='intern') || (!isIntern && m.fromRole==='tl');
+    const toMe = (isIntern && m.fromRole==='tl') || (!isIntern && m.fromRole==='intern');
+    const si = meetStatusInfo(m);
+    const canAct = m.status==='pending' && toMe;
+    const who = m.fromRole==='intern' ? `${m.internName} 发起 → ${m.tlName}` : `${m.tlName} 发起 → ${m.internName}`;
+    return `
+      <div class="plain-row">
+        <div class="ic">${icon.chat}</div>
+        <div class="pm">
+          <b>${who}</b>
+          <span>内容：${m.content} · 期望 ${m.date} ${m.time}</span>
+          <span style="color:var(--brand-deep);font-weight:600">${si.label}</span>
+        </div>
+        ${canAct?`<div class="mg-ops">
+          <button class="mini-btn" onclick="agreeMeetReq('${m.id}')">同意</button>
+          <button class="mini-btn" onclick="openReschedule('${m.id}')">修改时间</button>
+        </div>`:`<span class="tag ${si.cls}">${m.status==='agreed'?'已同意':m.status==='rescheduled'?'已改期':'待确认'}</span>`}
+      </div>`;
+  }).join('') + `</div>`;
 }
 
 /* ================= 渲染：阶段回顾 ================= */
